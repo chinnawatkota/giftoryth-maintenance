@@ -680,7 +680,7 @@ export const shopAllBaskets: Product.ShopAllBasketMenuItem[] = [
   {
     id: 'shop-all-basket-02',
     image:
-      'https://images.giftoryth.com/giftoryth-public/images/special custom design/custom basket/03.webp',
+      'https://images.giftoryth.com/giftoryth-public/images/special-custom-design/custom-basket/03.webp',
     title: 'Baskets',
     url: '/baskets#sepcial-custom-design',
     className: 'bg-beige',
@@ -697,7 +697,7 @@ export const shopAllBaskets: Product.ShopAllBasketMenuItem[] = [
   {
     id: 'shop-all-basket-04',
     image:
-      'https://images.giftoryth.com/giftoryth-public/images/special custom design/custom basket/01.webp',
+      'https://images.giftoryth.com/giftoryth-public/images/special-custom-design/custom-basket/01.webp',
     title: 'Baskets',
     url: '/baskets#special-custom-design',
     className: 'bg-maroon',
