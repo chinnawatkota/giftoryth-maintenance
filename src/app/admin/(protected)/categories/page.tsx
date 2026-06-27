@@ -1,5 +1,6 @@
 import { createCategory, deleteCategory, updateCategory } from './actions';
 import { prisma } from '@/lib/prisma';
+import ConfirmSubmitButton from '../_components/ConfirmSubmitButton';
 
 const inputClass = 'w-full border border-shadow-black/20 px-3 py-2 text-sm outline-none focus:border-maroon';
 
@@ -65,13 +66,14 @@ const CategoriesPage = async () => {
                     </button>
                     <form action={deleteCategory}>
                       <input type="hidden" name="id" value={category.id} />
-                      <button
+                      <ConfirmSubmitButton
                         type="submit"
+                        message={`Delete category "${category.name}"? This cannot be undone.`}
                         disabled={category._count.products > 0}
                         className="border border-main-red px-3 py-2 text-sm text-main-red disabled:cursor-not-allowed disabled:opacity-40"
                       >
                         Delete
-                      </button>
+                      </ConfirmSubmitButton>
                     </form>
                   </div>
                 </td>

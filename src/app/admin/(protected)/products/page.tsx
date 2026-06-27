@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { deleteProduct, toggleProductPublished } from './actions';
 import { prisma } from '@/lib/prisma';
 import { formatPrice } from '@/utils/string';
+import ConfirmSubmitButton from '../_components/ConfirmSubmitButton';
 
 const PAGE_SIZE = 12;
 
@@ -169,9 +170,13 @@ const ProductsPage = async ({ searchParams }: ProductsPageProps) => {
                     </Link>
                     <form action={deleteProduct}>
                       <input type="hidden" name="id" value={product.id} />
-                      <button type="submit" className="border border-main-red px-3 py-2 text-main-red">
+                      <ConfirmSubmitButton
+                        type="submit"
+                        message={`Delete "${product.title}"? This cannot be undone.`}
+                        className="border border-main-red px-3 py-2 text-main-red"
+                      >
                         Delete
-                      </button>
+                      </ConfirmSubmitButton>
                     </form>
                   </div>
                 </td>
