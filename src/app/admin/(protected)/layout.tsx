@@ -19,6 +19,9 @@ const AdminLayout = async ({ children }: { children: React.ReactNode }) => {
             <Link href="/admin/home/identity" className="hover:text-maroon">
               Identity
             </Link>
+            <Link href="/admin/custom-gift" className="hover:text-maroon">
+              Custom Gift
+            </Link>
             <Link href="/admin/products" className="hover:text-maroon">
               Products
             </Link>

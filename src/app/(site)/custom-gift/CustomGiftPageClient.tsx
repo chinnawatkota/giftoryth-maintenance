@@ -1,10 +1,14 @@
 'use client';
 
 import { ProductCard } from '@/components/cards';
-import { customGift } from '@/constants/custom-gift';
+import type { CustomGiftPageItem } from '@/lib/customGiftPage';
 import { cn } from '@/utils';
 
-const CustomGiftPageClient = () => {
+type CustomGiftPageClientProps = {
+  items: CustomGiftPageItem[];
+};
+
+const CustomGiftPageClient = ({ items }: CustomGiftPageClientProps) => {
   return (
     <div className="mb-4 min-h-[calc(100dvh-290px)]">
       <div className="flex h-fit w-full flex-col px-4 pb-[30px] pt-8 md:px-8 md:py-10 lg:py-12 xl:py-14">
@@ -21,9 +25,9 @@ const CustomGiftPageClient = () => {
           'flex flex-col gap-6 px-4 sm:grid sm:grid-cols-2 md:grid-cols-3 md:px-8 xl:grid-cols-4 2xl:grid-cols-5'
         )}
       >
-        {customGift.map(({ className, ...gift }) => (
+        {items.map(({ className, slot, ...gift }) => (
           <ProductCard
-            key={gift.image + gift.title}
+            key={`${slot}-${gift.image}`}
             className={cn('max-w-full', className)}
             {...gift}
           />

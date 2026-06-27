@@ -34,7 +34,7 @@ const MediaPage = async ({ searchParams }: MediaPageProps) => {
   const currentPage = Math.min(requestedPage, totalPages);
   const paginatedMediaObjects = mediaObjects.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
   const paginatedMediaUrls = paginatedMediaObjects.flatMap(item => [item.url, item.thumbnailUrl]);
-  const [usedProducts, usedSiteSettings, usedIdentityItems] = await Promise.all([
+  const [usedProducts, usedSiteSettings, usedIdentityItems, usedCustomGiftItems] = await Promise.all([
     prisma.product.findMany({
       where: {
         OR: [
@@ -85,6 +85,18 @@ const MediaPage = async ({ searchParams }: MediaPageProps) => {
         image: true,
       },
     }),
+    prisma.customGiftItem.findMany({
+      where: {
+        image: {
+          in: paginatedMediaUrls,
+        },
+      },
+      select: {
+        slot: true,
+        title: true,
+        image: true,
+      },
+    }),
   ]);
   const usageByImage = new Map<string, string[]>();
   const pageHref = (page: number) => `/admin/media?page=${page}`;
@@ -108,6 +120,12 @@ const MediaPage = async ({ searchParams }: MediaPageProps) => {
   for (const item of usedIdentityItems) {
     const usages = usageByImage.get(item.image) || [];
     usages.push(`Identity slot ${item.slot}: ${item.title}`);
+    usageByImage.set(item.image, usages);
+  }
+
+  for (const item of usedCustomGiftItems) {
+    const usages = usageByImage.get(item.image) || [];
+    usages.push(`Custom Gift slot ${item.slot}${item.title ? `: ${item.title}` : ''}`);
     usageByImage.set(item.image, usages);
   }
 

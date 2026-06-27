@@ -51,3 +51,14 @@ model HomeIdentityItem {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 }
+
+model CustomGiftItem {
+  id             String   @id @default(cuid())
+  slot           Int      @unique
+  title          String
+  image          String
+  imageClassName String?
+  isPublished    Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}

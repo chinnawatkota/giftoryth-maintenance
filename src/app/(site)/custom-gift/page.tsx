@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { getSiteUrl } from '@/utils/siteUrl';
 import { generateThaiKeywords } from '@/utils/thaiKeywords';
 import CustomGiftPageClient from './CustomGiftPageClient';
+import { getCustomGiftPageItems } from '@/lib/customGiftPage';
 
 const BASE_URL = getSiteUrl();
 
@@ -26,6 +27,12 @@ export const metadata: Metadata = {
   },
 };
 
-const CustomGiftPage = () => <CustomGiftPageClient />;
+export const dynamic = 'force-dynamic';
+
+const CustomGiftPage = async () => {
+  const items = await getCustomGiftPageItems();
+
+  return <CustomGiftPageClient items={items} />;
+};
 
 export default CustomGiftPage;

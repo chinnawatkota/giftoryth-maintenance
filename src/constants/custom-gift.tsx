@@ -1,6 +1,7 @@
 export const customGift = [
   {
     id: 'custom-gift-01',
+    slot: 1,
     title: '',
     image:
       'https://images.giftoryth.com/giftoryth-public/images/special-custom-design/custom-gift/01.webp',
@@ -12,6 +13,7 @@ export const customGift = [
   },
   {
     id: 'custom-gift-11',
+    slot: 2,
     title: '',
     image:
       'https://images.giftoryth.com/giftoryth-public/images/special-custom-design/custom-gift/11.webp',
@@ -22,6 +24,7 @@ export const customGift = [
   },
   {
     id: 'custom-gift-08',
+    slot: 3,
     title: '',
     image:
       'https://images.giftoryth.com/giftoryth-public/images/special-custom-design/custom-gift/08.webp',
@@ -32,6 +35,7 @@ export const customGift = [
   },
   {
     id: 'custom-gift-09',
+    slot: 4,
     title: '',
     image:
       'https://images.giftoryth.com/giftoryth-public/images/special-custom-design/custom-gift/09.webp',
@@ -42,6 +46,7 @@ export const customGift = [
   },
   {
     id: 'custom-gift-03',
+    slot: 5,
     title: '',
     image:
       'https://images.giftoryth.com/giftoryth-public/images/special-custom-design/custom-gift/03.webp',
@@ -51,6 +56,7 @@ export const customGift = [
   },
   {
     id: 'custom-gift-04',
+    slot: 6,
     title: '',
     image:
       'https://images.giftoryth.com/giftoryth-public/images/special-custom-design/custom-gift/04.webp',
@@ -61,6 +67,7 @@ export const customGift = [
   },
   {
     id: 'custom-gift-05',
+    slot: 7,
     title: '',
     image:
       'https://images.giftoryth.com/giftoryth-public/images/special-custom-design/custom-gift/05.webp',
@@ -71,6 +78,7 @@ export const customGift = [
   },
   {
     id: 'custom-gift-06',
+    slot: 8,
     title: '',
     image:
       'https://images.giftoryth.com/giftoryth-public/images/special-custom-design/custom-gift/06.webp',
@@ -81,6 +89,7 @@ export const customGift = [
   },
   {
     id: 'custom-gift-07',
+    slot: 9,
     title: '',
     image:
       'https://images.giftoryth.com/giftoryth-public/images/special-custom-design/custom-gift/07.webp',
@@ -91,6 +100,7 @@ export const customGift = [
   },
   {
     id: 'custom-gift-02',
+    slot: 10,
     title: '',
     image:
       'https://images.giftoryth.com/giftoryth-public/images/special-custom-design/custom-gift/02.webp',
@@ -101,6 +111,7 @@ export const customGift = [
   },
   {
     id: 'custom-gift-10',
+    slot: 11,
     title: '',
     image:
       'https://images.giftoryth.com/giftoryth-public/images/special-custom-design/custom-gift/10.webp',
@@ -110,6 +121,7 @@ export const customGift = [
   },
   {
     id: 'custom-gift-11',
+    slot: 12,
     title: '',
     image:
       'https://images.giftoryth.com/giftoryth-public/images/special-custom-design/custom-basket/01.webp',
@@ -119,6 +131,7 @@ export const customGift = [
   },
   {
     id: 'custom-gift-12',
+    slot: 13,
     title: '',
     image:
       'https://images.giftoryth.com/giftoryth-public/images/special-custom-design/custom-basket/02.webp',
@@ -128,6 +141,7 @@ export const customGift = [
   },
   {
     id: 'custom-gift-13',
+    slot: 14,
     title: '',
     image:
       'https://images.giftoryth.com/giftoryth-public/images/special-custom-design/custom-basket/03.webp',
@@ -137,6 +151,7 @@ export const customGift = [
   },
   {
     id: 'custom-gift-14',
+    slot: 15,
     title: '',
     image:
       'https://images.giftoryth.com/giftoryth-public/images/special-custom-design/custom-basket/04.webp',
@@ -146,6 +161,7 @@ export const customGift = [
   },
   {
     id: 'custom-gift-15',
+    slot: 16,
     title: '',
     image:
       'https://images.giftoryth.com/giftoryth-public/images/special-custom-design/custom-basket/05.webp',
@@ -155,6 +171,7 @@ export const customGift = [
   },
   {
     id: 'custom-gift-16',
+    slot: 17,
     title: '',
     image:
       'https://images.giftoryth.com/giftoryth-public/images/special-custom-design/custom-basket/06.webp',
@@ -164,6 +181,7 @@ export const customGift = [
   },
   {
     id: 'custom-gift-17',
+    slot: 18,
     title: '',
     image:
       'https://images.giftoryth.com/giftoryth-public/images/special-custom-design/custom-basket/07.webp',
@@ -173,6 +191,7 @@ export const customGift = [
   },
   {
     id: 'custom-gift-18',
+    slot: 19,
     title: '',
     image:
       'https://images.giftoryth.com/giftoryth-public/images/special-custom-design/custom-basket/08.webp',
