@@ -5,6 +5,14 @@ import { deleteMediaObject, uploadMediaObject } from './actions';
 import { prisma } from '@/lib/prisma';
 import { listMediaObjects } from '@/lib/storage';
 
+const PAGE_SIZE = 12;
+
+type MediaPageProps = {
+  searchParams: Promise<{
+    page?: string;
+  }>;
+};
+
 const formatBytes = (bytes: number) => {
   if (bytes < 1024) {
     return `${bytes} B`;
@@ -17,19 +25,26 @@ const formatBytes = (bytes: number) => {
   return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 };
 
-const MediaPage = async () => {
+const MediaPage = async ({ searchParams }: MediaPageProps) => {
+  const params = await searchParams;
+  const requestedPage = Math.max(Number(params.page || 1), 1);
   const mediaObjects = await listMediaObjects();
+  const totalMediaObjects = mediaObjects.length;
+  const totalPages = Math.max(Math.ceil(totalMediaObjects / PAGE_SIZE), 1);
+  const currentPage = Math.min(requestedPage, totalPages);
+  const paginatedMediaObjects = mediaObjects.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const paginatedMediaUrls = paginatedMediaObjects.flatMap(item => [item.url, item.thumbnailUrl]);
   const usedProducts = await prisma.product.findMany({
     where: {
       OR: [
         {
           image: {
-            in: mediaObjects.map(item => item.url),
+            in: paginatedMediaUrls,
           },
         },
         {
           thumbnailImage: {
-            in: mediaObjects.map(item => item.url),
+            in: paginatedMediaUrls,
           },
         },
       ],
@@ -42,6 +57,9 @@ const MediaPage = async () => {
     },
   });
   const productsByImage = new Map<string, typeof usedProducts>();
+  const pageHref = (page: number) => `/admin/media?page=${page}`;
+  const from = totalMediaObjects === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1;
+  const to = Math.min(currentPage * PAGE_SIZE, totalMediaObjects);
 
   for (const product of usedProducts) {
     for (const imageUrl of [product.image, product.thumbnailImage].filter(Boolean)) {
@@ -92,15 +110,20 @@ const MediaPage = async () => {
         </p>
       </form>
 
+      <div className="mt-4 text-sm font-light text-shadow-black/60">
+        Showing {from}-{to} of {totalMediaObjects} images
+      </div>
+
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {mediaObjects.length === 0 && (
+        {paginatedMediaObjects.length === 0 && (
           <div className="border border-shadow-black/10 bg-white p-6 text-sm font-light text-shadow-black/60">
             No uploaded managed images yet.
           </div>
         )}
 
-        {mediaObjects.map(item => {
-          const products = productsByImage.get(item.url) || [];
+        {paginatedMediaObjects.map(item => {
+          const products = [...(productsByImage.get(item.url) || []), ...(productsByImage.get(item.thumbnailUrl) || [])]
+            .filter((product, index, list) => list.findIndex(entry => entry.id === product.id) === index);
           const isUsed = products.length > 0;
 
           return (
@@ -149,6 +172,44 @@ const MediaPage = async () => {
           );
         })}
       </div>
+
+      {totalPages > 1 && (
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+          <a
+            href={pageHref(Math.max(currentPage - 1, 1))}
+            className="border border-shadow-black/20 px-4 py-2 text-sm font-light aria-disabled:pointer-events-none aria-disabled:opacity-40"
+            aria-disabled={currentPage <= 1}
+          >
+            Previous
+          </a>
+          <div className="flex flex-wrap gap-2">
+            {Array.from({ length: totalPages }).map((_, index) => {
+              const page = index + 1;
+
+              return (
+                <a
+                  key={page}
+                  href={pageHref(page)}
+                  className={
+                    page === currentPage
+                      ? 'bg-maroon px-3 py-2 text-sm text-main-white'
+                      : 'border border-shadow-black/20 px-3 py-2 text-sm font-light'
+                  }
+                >
+                  {page}
+                </a>
+              );
+            })}
+          </div>
+          <a
+            href={pageHref(Math.min(currentPage + 1, totalPages))}
+            className="border border-shadow-black/20 px-4 py-2 text-sm font-light aria-disabled:pointer-events-none aria-disabled:opacity-40"
+            aria-disabled={currentPage >= totalPages}
+          >
+            Next
+          </a>
+        </div>
+      )}
     </div>
   );
 };
