@@ -1,212 +1,192 @@
+import Image from 'next/image';
+import Link from 'next/link';
 import ConfirmSubmitButton from '../_components/ConfirmSubmitButton';
-import CustomGiftItemImageField from './CustomGiftItemImageField';
-import { createCustomGiftItem, deleteCustomGiftItem, updateCustomGiftItem } from './actions';
-import { getCustomGiftPageItems, getNextCustomGiftSlot } from '@/lib/customGiftPage';
+import { deleteCustomGiftItem } from './actions';
+import { getCustomGiftPageItems } from '@/lib/customGiftPage';
 
-const PAGE_SIZE = 8;
-const inputClass = 'w-full border border-shadow-black/20 px-3 py-2 text-sm outline-none focus:border-maroon';
-const labelClass = 'text-sm font-light text-shadow-black/70';
-const objectPositionOptions = [
-  { label: 'Keep Default', value: '__default__' },
-  { label: 'Center', value: '' },
-  { label: 'Left', value: 'object-left' },
-  { label: 'Right', value: 'object-right' },
-  { label: 'Top', value: 'object-top' },
-  { label: 'Bottom', value: 'object-bottom' },
-];
+const PAGE_SIZE = 12;
 
 type AdminCustomGiftPageProps = {
   searchParams: Promise<{
+    q?: string;
+    status?: string;
     page?: string;
   }>;
 };
 
+const inputClass = 'border border-shadow-black/20 px-3 py-2 text-sm outline-none focus:border-maroon';
+
 const AdminCustomGiftPage = async ({ searchParams }: AdminCustomGiftPageProps) => {
   const params = await searchParams;
-  const requestedPage = Math.max(Number(params.page || 1), 1);
-  const [items, nextSlot] = await Promise.all([
-    getCustomGiftPageItems({ includeHidden: true }),
-    getNextCustomGiftSlot(),
-  ]);
-  const featuredItem = items.find(item => item.slot === 1);
-  const listItems = items.filter(item => item.slot !== 1);
-  const totalListItems = listItems.length;
-  const totalPages = Math.max(Math.ceil(totalListItems / PAGE_SIZE), 1);
-  const currentPage = Math.min(requestedPage, totalPages);
-  const paginatedListItems = listItems.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
-  const from = totalListItems === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1;
-  const to = Math.min(currentPage * PAGE_SIZE, totalListItems);
-  const pageHref = (page: number) => `/admin/custom-gift?page=${page}`;
+  const q = params.q?.trim().toLowerCase() || '';
+  const status = params.status || '';
+  const currentPage = Math.max(Number(params.page || 1), 1);
+  const items = await getCustomGiftPageItems({ includeHidden: true });
+  const filteredItems = items.filter(item => {
+    const matchesSearch =
+      !q ||
+      item.title.toLowerCase().includes(q) ||
+      item.id.toLowerCase().includes(q) ||
+      String(item.slot).includes(q);
+    const matchesStatus =
+      !status ||
+      (status === 'published' && item.isPublished) ||
+      (status === 'unpublished' && !item.isPublished);
+
+    return matchesSearch && matchesStatus;
+  });
+  const totalItems = filteredItems.length;
+  const totalPages = Math.max(Math.ceil(totalItems / PAGE_SIZE), 1);
+  const paginatedItems = filteredItems.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const from = totalItems === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1;
+  const to = Math.min(currentPage * PAGE_SIZE, totalItems);
+
+  const pageHref = (page: number) => {
+    const nextParams = new URLSearchParams();
+
+    if (q) nextParams.set('q', q);
+    if (status) nextParams.set('status', status);
+    nextParams.set('page', String(page));
+
+    return `/admin/custom-gift?${nextParams.toString()}`;
+  };
 
   return (
     <div>
-      <div>
-        <h1 className="text-2xl font-light">Custom Gift Page</h1>
-        <p className="mt-1 text-sm font-light text-shadow-black/60">
-          Manage the fixed featured slot and the list items shown on the Custom Gift storefront page.
-        </p>
-      </div>
-
-      {featuredItem && (
-        <div className="mt-8">
-          <h2 className="text-xl font-light">Featured Slot</h2>
-          <div className="mt-4 max-w-3xl">
-            <form action={updateCustomGiftItem} className="grid gap-4 border border-shadow-black/10 bg-white p-5">
-              <input type="hidden" name="slot" value={featuredItem.slot} />
-
-              <div>
-                <div className="text-sm font-light text-maroon">Slot {featuredItem.slot}</div>
-                <div className="mt-1 break-words text-xs font-light text-shadow-black/50">
-                  Layout: {featuredItem.className || 'default'}
-                </div>
-              </div>
-
-              <CustomGiftItemImageField image={featuredItem.image} title={featuredItem.title} inputClass={inputClass} labelClass={labelClass} />
-
-              <label className="grid gap-2">
-                <span className={labelClass}>Title / Alt Text Optional</span>
-                <input name="title" defaultValue={featuredItem.title} className={inputClass} />
-              </label>
-
-              <label className="grid gap-2">
-                <span className={labelClass}>Object Position</span>
-                <select name="imageClassName" defaultValue={featuredItem.imageClassName ?? '__default__'} className={inputClass}>
-                  {objectPositionOptions.map(option => (
-                    <option key={option.label} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <label className="flex items-center gap-2 text-sm font-light">
-                <input name="isPublished" type="checkbox" defaultChecked={featuredItem.isPublished} />
-                Published
-              </label>
-
-              <button type="submit" className="w-fit bg-maroon px-4 py-2 text-sm font-light text-main-white">
-                Save Featured Slot
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
-
-      <form action={createCustomGiftItem} className="mt-8 grid gap-4 border border-shadow-black/10 bg-white p-5">
+      <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h2 className="text-xl font-light">Add List Item</h2>
+          <h1 className="text-2xl font-light">Custom Gift</h1>
           <p className="mt-1 text-sm font-light text-shadow-black/60">
-            New items are added to the regular Custom Gift grid after the featured slot.
+            Manage storefront custom gift images.
           </p>
         </div>
-        <input type="hidden" name="slot" value={nextSlot} />
-        <CustomGiftItemImageField image="" title="New custom gift item" inputClass={inputClass} labelClass={labelClass} />
-        <label className="grid gap-2">
-          <span className={labelClass}>Title / Alt Text Optional</span>
-          <input name="title" className={inputClass} />
-        </label>
-        <button type="submit" className="w-fit bg-maroon px-4 py-2 text-sm font-light text-main-white">
-          Add Item
+        <Link href="/admin/custom-gift/new" className="bg-maroon px-4 py-2 text-sm font-light text-main-white">
+          New Item
+        </Link>
+      </div>
+
+      <form className="mt-8 grid gap-3 border border-shadow-black/10 bg-white p-4 md:grid-cols-[1fr_180px_auto_auto]">
+        <input name="q" defaultValue={q} placeholder="Search title or slot" className={inputClass} />
+        <select name="status" defaultValue={status} className={inputClass}>
+          <option value="">All status</option>
+          <option value="published">Published</option>
+          <option value="unpublished">Unpublished</option>
+        </select>
+        <button type="submit" className="bg-maroon px-4 py-2 text-sm font-light text-main-white">
+          Filter
         </button>
+        <Link href="/admin/custom-gift" className="border border-shadow-black/20 px-4 py-2 text-center text-sm font-light">
+          Reset
+        </Link>
       </form>
 
-      <div className="mt-8">
-        <h2 className="text-xl font-light">List Items</h2>
-        <div className="mt-3 text-sm font-light text-shadow-black/60">
-          Showing {from}-{to} of {totalListItems} items
-        </div>
-        <div className="mt-4 grid gap-5 lg:grid-cols-2">
-          {paginatedListItems.map(item => (
-            <div key={item.slot} className="grid gap-4 border border-shadow-black/10 bg-white p-5">
-              <form action={updateCustomGiftItem} className="grid gap-4">
-                <input type="hidden" name="slot" value={item.slot} />
-
-                <div>
-                  <div className="text-sm font-light text-maroon">Item {item.slot}</div>
-                </div>
-
-                <CustomGiftItemImageField image={item.image} title={item.title} inputClass={inputClass} labelClass={labelClass} />
-
-                <label className="grid gap-2">
-                  <span className={labelClass}>Title / Alt Text Optional</span>
-                  <input name="title" defaultValue={item.title} className={inputClass} />
-                </label>
-
-                <label className="grid gap-2">
-                  <span className={labelClass}>Object Position</span>
-                  <select name="imageClassName" defaultValue={item.imageClassName ?? '__default__'} className={inputClass}>
-                    {objectPositionOptions.map(option => (
-                      <option key={option.label} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-
-                <label className="flex items-center gap-2 text-sm font-light">
-                  <input name="isPublished" type="checkbox" defaultChecked={item.isPublished} />
-                  Published
-                </label>
-
-                <button type="submit" className="w-fit bg-maroon px-4 py-2 text-sm font-light text-main-white">
-                  Save Item
-                </button>
-              </form>
-
-              <form action={deleteCustomGiftItem}>
-                <input type="hidden" name="slot" value={item.slot} />
-                <ConfirmSubmitButton
-                  type="submit"
-                  message="Remove this Custom Gift item from the storefront?"
-                  className="border border-main-red px-4 py-2 text-sm text-main-red"
-                >
-                  Delete
-                </ConfirmSubmitButton>
-              </form>
-            </div>
-          ))}
-        </div>
-
-        {totalPages > 1 && (
-          <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
-            <a
-              href={pageHref(Math.max(currentPage - 1, 1))}
-              className="border border-shadow-black/20 px-4 py-2 text-sm font-light aria-disabled:pointer-events-none aria-disabled:opacity-40"
-              aria-disabled={currentPage <= 1}
-            >
-              Previous
-            </a>
-            <div className="flex flex-wrap gap-2">
-              {Array.from({ length: totalPages }).map((_, index) => {
-                const page = index + 1;
-
-                return (
-                  <a
-                    key={page}
-                    href={pageHref(page)}
-                    className={
-                      page === currentPage
-                        ? 'bg-maroon px-3 py-2 text-sm text-main-white'
-                        : 'border border-shadow-black/20 px-3 py-2 text-sm font-light'
-                    }
-                  >
-                    {page}
-                  </a>
-                );
-              })}
-            </div>
-            <a
-              href={pageHref(Math.min(currentPage + 1, totalPages))}
-              className="border border-shadow-black/20 px-4 py-2 text-sm font-light aria-disabled:pointer-events-none aria-disabled:opacity-40"
-              aria-disabled={currentPage >= totalPages}
-            >
-              Next
-            </a>
-          </div>
-        )}
+      <div className="mt-4 text-sm font-light text-shadow-black/60">
+        Showing {from}-{to} of {totalItems} items
       </div>
+
+      <div className="mt-8 overflow-x-auto border border-shadow-black/10 bg-white">
+        <table className="w-full min-w-[820px] text-left text-sm">
+          <thead className="border-b border-shadow-black/10 bg-main-white">
+            <tr>
+              <th className="px-4 py-3 font-light">Image</th>
+              <th className="px-4 py-3 font-light">Item</th>
+              <th className="px-4 py-3 font-light">Sort</th>
+              <th className="px-4 py-3 font-light">Status</th>
+              <th className="px-4 py-3 font-light">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {paginatedItems.length === 0 && (
+              <tr>
+                <td colSpan={5} className="px-4 py-8 text-center font-light text-shadow-black/60">
+                  No custom gift items found.
+                </td>
+              </tr>
+            )}
+            {paginatedItems.map(item => (
+              <tr key={`${item.slot}-${item.image}`} className="border-b border-shadow-black/10 last:border-b-0">
+                <td className="px-4 py-3">
+                  <div className="relative size-16 overflow-hidden bg-main-white">
+                    <Image src={item.image} alt={item.title || `Custom gift item ${item.slot}`} fill sizes="64px" className="object-cover" />
+                  </div>
+                </td>
+                <td className="px-4 py-3">
+                  <div className="font-light">{item.title || `Custom Gift Item ${item.slot}`}</div>
+                  <div className="mt-1 text-xs text-shadow-black/50">
+                    {item.slot === 1 ? 'Featured slot' : item.id}
+                  </div>
+                </td>
+                <td className="px-4 py-3 font-light">{item.slot}</td>
+                <td className="px-4 py-3">
+                  <div className={item.isPublished ? 'text-maroon' : 'text-shadow-black/40'}>
+                    {item.isPublished ? 'Published' : 'Unpublished'}
+                  </div>
+                </td>
+                <td className="px-4 py-3">
+                  <div className="flex gap-2">
+                    <Link href={`/admin/custom-gift/${item.slot}/edit`} className="border border-maroon px-3 py-2 text-maroon">
+                      Edit
+                    </Link>
+                    {item.slot !== 1 && (
+                      <form action={deleteCustomGiftItem}>
+                        <input type="hidden" name="slot" value={item.slot} />
+                        <ConfirmSubmitButton
+                          type="submit"
+                          message={`Delete "${item.title || `item ${item.slot}`}"? This cannot be undone for newly added items.`}
+                          className="border border-main-red px-3 py-2 text-main-red"
+                        >
+                          Delete
+                        </ConfirmSubmitButton>
+                      </form>
+                    )}
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {totalPages > 1 && (
+        <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+          <Link
+            href={pageHref(Math.max(currentPage - 1, 1))}
+            className="border border-shadow-black/20 px-4 py-2 text-sm font-light aria-disabled:pointer-events-none aria-disabled:opacity-40"
+            aria-disabled={currentPage <= 1}
+          >
+            Previous
+          </Link>
+          <div className="flex flex-wrap gap-2">
+            {Array.from({ length: totalPages }).map((_, index) => {
+              const page = index + 1;
+
+              return (
+                <Link
+                  key={page}
+                  href={pageHref(page)}
+                  className={
+                    page === currentPage
+                      ? 'bg-maroon px-3 py-2 text-sm text-main-white'
+                      : 'border border-shadow-black/20 px-3 py-2 text-sm font-light'
+                  }
+                >
+                  {page}
+                </Link>
+              );
+            })}
+          </div>
+          <Link
+            href={pageHref(Math.min(currentPage + 1, totalPages))}
+            className="border border-shadow-black/20 px-4 py-2 text-sm font-light aria-disabled:pointer-events-none aria-disabled:opacity-40"
+            aria-disabled={currentPage >= totalPages}
+          >
+            Next
+          </Link>
+        </div>
+      )}
     </div>
   );
 };
 
 export default AdminCustomGiftPage;
+

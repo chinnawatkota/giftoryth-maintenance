@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
 import { customGift } from '@/constants/custom-gift';
 import { prisma } from '@/lib/prisma';
 import { uploadSiteImage } from '@/lib/storage';
@@ -14,7 +15,7 @@ const revalidateCustomGiftPaths = () => {
   revalidatePath('/admin/custom-gift');
 };
 
-export const updateCustomGiftItem = async (formData: FormData) => {
+const customGiftDataFromForm = async (formData: FormData) => {
   const slot = Number(formData.get('slot') || 0);
   const title = toString(formData.get('title'));
   const imageFile = formData.get('imageFile');
@@ -27,54 +28,59 @@ export const updateCustomGiftItem = async (formData: FormData) => {
   const imageClassName = imageClassNameInput === '__default__' ? null : imageClassNameInput;
   const isPublished = toBool(formData.get('isPublished'));
 
-  if (!slot || !image) {
+  return {
+    slot,
+    title,
+    image,
+    imageClassName,
+    isPublished,
+  };
+};
+
+export const updateCustomGiftItem = async (formData: FormData) => {
+  const originalSlot = Number(formData.get('originalSlot') || formData.get('slot') || 0);
+  const data = await customGiftDataFromForm(formData);
+
+  if (!originalSlot || !data.slot || !data.image) {
     return;
   }
 
+  if (originalSlot !== data.slot) {
+    await prisma.customGiftItem.deleteMany({
+      where: { slot: originalSlot },
+    });
+  }
+
   await prisma.customGiftItem.upsert({
-    where: { slot },
+    where: { slot: data.slot },
     create: {
-      slot,
-      title,
-      image,
-      imageClassName,
-      isPublished,
+      ...data,
     },
     update: {
-      title,
-      image,
-      imageClassName,
-      isPublished,
+      title: data.title,
+      image: data.image,
+      imageClassName: data.imageClassName,
+      isPublished: data.isPublished,
     },
   });
 
   revalidateCustomGiftPaths();
+  redirect('/admin/custom-gift');
 };
 
 export const createCustomGiftItem = async (formData: FormData) => {
-  const nextSlot = Number(formData.get('slot') || 0);
-  const title = toString(formData.get('title'));
-  const imageFile = formData.get('imageFile');
-  const uploadedImage =
-    imageFile instanceof File && imageFile.size > 0
-      ? await uploadSiteImage(imageFile, `custom-gift-page-${nextSlot}`)
-      : null;
-  const image = uploadedImage?.imageUrl || toString(formData.get('image'));
+  const data = await customGiftDataFromForm(formData);
 
-  if (!nextSlot || !image) {
+  if (!data.slot || !data.image) {
     return;
   }
 
   await prisma.customGiftItem.create({
-    data: {
-      slot: nextSlot,
-      title,
-      image,
-      isPublished: true,
-    },
+    data,
   });
 
   revalidateCustomGiftPaths();
+  redirect('/admin/custom-gift');
 };
 
 export const deleteCustomGiftItem = async (formData: FormData) => {
