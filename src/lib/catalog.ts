@@ -7,6 +7,13 @@ export type CatalogProduct = Omit<Product.ProductCardProps, 'price' | 'details'>
   categorySlug: string;
 };
 
+export type CatalogCategorySection = {
+  id: string;
+  slug: string;
+  name: string;
+  products: CatalogProduct[];
+};
+
 const toCatalogProduct = (
   product: PrismaProduct & {
     category: {
@@ -41,6 +48,39 @@ export const getPublishedProductsByCategory = async (categorySlug: string) => {
   });
 
   return products.map(toCatalogProduct);
+};
+
+export const getPublishedProductSections = async (): Promise<CatalogCategorySection[]> => {
+  const categories = await prisma.category.findMany({
+    where: {
+      products: {
+        some: {
+          isPublished: true,
+        },
+      },
+    },
+    orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
+    include: {
+      products: {
+        where: {
+          isPublished: true,
+        },
+        orderBy: [{ sortOrder: 'asc' }, { title: 'asc' }],
+        include: {
+          category: {
+            select: { slug: true },
+          },
+        },
+      },
+    },
+  });
+
+  return categories.map(category => ({
+    id: category.id,
+    slug: category.slug,
+    name: category.name,
+    products: category.products.map(toCatalogProduct),
+  }));
 };
 
 export const getPublishedProductBySlug = async (slug: string) => {

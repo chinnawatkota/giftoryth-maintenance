@@ -5,7 +5,7 @@ import { productItemListStructuredData } from '@/components/seo/StructuredData';
 import { getSiteUrl } from '@/utils/siteUrl';
 import { generateThaiKeywords } from '@/utils/thaiKeywords';
 import BasketsPageClient from './BasketsPageClient';
-import { getPublishedProductsByCategory } from '@/lib/catalog';
+import { getPublishedProductSections } from '@/lib/catalog';
 
 const BASE_URL = getSiteUrl();
 
@@ -30,10 +30,7 @@ export const metadata: Metadata = {
 };
 
 const BasketsPage = async () => {
-  const [nonCustomBaskets, customBaskets] = await Promise.all([
-    getPublishedProductsByCategory('non-custom'),
-    getPublishedProductsByCategory('special-custom-design'),
-  ]);
+  const sections = await getPublishedProductSections();
 
   return (
     <>
@@ -43,7 +40,7 @@ const BasketsPage = async () => {
         strategy="afterInteractive"
         dangerouslySetInnerHTML={{ __html: JSON.stringify([productItemListStructuredData]) }}
       />
-      <BasketsPageClient nonCustomBaskets={nonCustomBaskets} customBaskets={customBaskets} />
+      <BasketsPageClient sections={sections} />
     </>
   );
 };
