@@ -33,6 +33,22 @@ export const DEFAULT_ABOUT_SETTINGS = {
   secondImage: 'https://images.giftoryth.com/giftoryth-public/images/cover.webp',
   secondAlt: 'Giftoryth gift basket',
 };
+export const CONTACT_SETTING_KEYS = {
+  logoImage: 'contact.logoImage',
+  logoAlt: 'contact.logoAlt',
+  featureImage: 'contact.featureImage',
+  featureAlt: 'contact.featureAlt',
+  qrImage: 'contact.qrImage',
+  qrAlt: 'contact.qrAlt',
+} as const;
+export const DEFAULT_CONTACT_SETTINGS = {
+  logoImage: 'https://images.giftoryth.com/giftoryth-public/images/logos/logo-white-transparent.webp',
+  logoAlt: 'Giftoryth logo',
+  featureImage: 'https://images.giftoryth.com/giftoryth-public/images/IMG_6078.webp',
+  featureAlt: 'Giftoryth handmade baskets',
+  qrImage: 'https://images.giftoryth.com/giftoryth-public/images/line/qr.webp',
+  qrAlt: 'Giftoryth Line QR code',
+};
 
 export const getSiteSetting = async (key: string) => {
   const setting = await prisma.siteSetting.findUnique({
@@ -79,5 +95,18 @@ export const getAboutSettings = async () => {
     firstAlt: settings.get(ABOUT_SETTING_KEYS.firstAlt) || DEFAULT_ABOUT_SETTINGS.firstAlt,
     secondImage: settings.get(ABOUT_SETTING_KEYS.secondImage) || DEFAULT_ABOUT_SETTINGS.secondImage,
     secondAlt: settings.get(ABOUT_SETTING_KEYS.secondAlt) || DEFAULT_ABOUT_SETTINGS.secondAlt,
+  };
+};
+
+export const getContactSettings = async () => {
+  const settings = await getSiteSettings(Object.values(CONTACT_SETTING_KEYS));
+
+  return {
+    logoImage: settings.get(CONTACT_SETTING_KEYS.logoImage) || DEFAULT_CONTACT_SETTINGS.logoImage,
+    logoAlt: settings.get(CONTACT_SETTING_KEYS.logoAlt) || DEFAULT_CONTACT_SETTINGS.logoAlt,
+    featureImage: settings.get(CONTACT_SETTING_KEYS.featureImage) || DEFAULT_CONTACT_SETTINGS.featureImage,
+    featureAlt: settings.get(CONTACT_SETTING_KEYS.featureAlt) || DEFAULT_CONTACT_SETTINGS.featureAlt,
+    qrImage: settings.get(CONTACT_SETTING_KEYS.qrImage) || DEFAULT_CONTACT_SETTINGS.qrImage,
+    qrAlt: settings.get(CONTACT_SETTING_KEYS.qrAlt) || DEFAULT_CONTACT_SETTINGS.qrAlt,
   };
 };

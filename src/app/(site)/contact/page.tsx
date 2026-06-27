@@ -2,10 +2,13 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import { ContactCard } from '@/components/cards';
 import { contactInfo } from '@/constants/contact';
+import { getContactSettings } from '@/lib/siteSettings';
 import { getSiteUrl } from '@/utils/siteUrl';
 import { generateThaiKeywords } from '@/utils/thaiKeywords';
 
 const BASE_URL = getSiteUrl();
+
+export const dynamic = 'force-dynamic';
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const metadata: Metadata = {
@@ -26,13 +29,15 @@ export const metadata: Metadata = {
   },
 };
 
-const ContactPage = () => {
+const ContactPage = async () => {
+  const contactSettings = await getContactSettings();
+
   return (
     <div className="mb-4 flex grid-cols-2 flex-col overflow-y-hidden max-md:min-h-[calc(100dvh-290px)] lg:grid lg:h-[calc(100dvh-290px)]">
       <div className="col-span-1 flex items-center justify-center bg-beige max-lg:max-h-[400px]">
         <Image
-          src="https://images.giftoryth.com/giftoryth-public/images/logos/logo-white-transparent.webp"
-          alt="Contact Hero"
+          src={contactSettings.logoImage}
+          alt={contactSettings.logoAlt}
           width={1000}
           height={1000}
           className="h-full w-full object-cover object-center"
@@ -56,8 +61,8 @@ const ContactPage = () => {
 
         <div className="relative h-[400px] w-full !bg-beige text-center">
           <Image
-            src="https://images.giftoryth.com/giftoryth-public/images/IMG_6078.webp"
-            alt="Contact Hero"
+            src={contactSettings.featureImage}
+            alt={contactSettings.featureAlt}
             width={1000}
             height={1000}
             className="h-full w-full object-cover object-center"
@@ -75,8 +80,8 @@ const ContactPage = () => {
 
         <div className="shadow-card-light mx-4 mt-4 flex flex-col items-center justify-center gap-y-4 border border-gray-100 bg-white p-4 md:mx-8 md:p-8">
           <Image
-            src="https://images.giftoryth.com/giftoryth-public/images/line/qr.webp"
-            alt="Contact Map"
+            src={contactSettings.qrImage}
+            alt={contactSettings.qrAlt}
             width={192}
             height={192}
             className="size-48 object-cover"
