@@ -70,7 +70,7 @@ const ProductImageField = ({ defaultImage, inputClass, labelClass }: ProductImag
             className="w-full border border-dashed border-shadow-black/20 px-3 py-3 text-sm file:mr-4 file:border-0 file:bg-maroon file:px-4 file:py-2 file:text-main-white"
           />
           <span className="text-xs font-light text-shadow-black/50">
-            WEBP, JPG, or PNG. Max 5MB. Uploaded image replaces the Image URL on save.
+            WEBP, JPG, or PNG. Max 10MB. Images are resized to 1200px and saved as WEBP on save.
           </span>
         </label>
       </div>

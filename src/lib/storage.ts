@@ -1,6 +1,9 @@
 import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import sharp from 'sharp';
 
-const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
+const OUTPUT_IMAGE_SIZE = 1200;
+const OUTPUT_IMAGE_QUALITY = 80;
 const ALLOWED_IMAGE_TYPES = ['image/webp', 'image/jpeg', 'image/png'];
 
 const getStorageConfig = () => {
@@ -23,18 +26,6 @@ const getStorageConfig = () => {
   };
 };
 
-const getExtension = (file: File) => {
-  if (file.type === 'image/png') {
-    return 'png';
-  }
-
-  if (file.type === 'image/jpeg') {
-    return 'jpg';
-  }
-
-  return 'webp';
-};
-
 const toSafeSegment = (value: string) =>
   value
     .toLowerCase()
@@ -52,7 +43,7 @@ export const uploadProductImage = async (file: File, slug: string) => {
   }
 
   if (file.size > MAX_IMAGE_SIZE) {
-    throw new Error('Image file must be 5MB or smaller.');
+    throw new Error('Image file must be 10MB or smaller.');
   }
 
   const config = getStorageConfig();
@@ -61,8 +52,21 @@ export const uploadProductImage = async (file: File, slug: string) => {
     throw new Error('Storage is not configured.');
   }
 
-  const key = `products/${toSafeSegment(slug) || 'product'}-${Date.now()}.${getExtension(file)}`;
+  const key = `products/${toSafeSegment(slug) || 'product'}-${Date.now()}.webp`;
   const bytes = await file.arrayBuffer();
+  const optimizedImage = await sharp(Buffer.from(bytes))
+    .rotate()
+    .resize({
+      width: OUTPUT_IMAGE_SIZE,
+      height: OUTPUT_IMAGE_SIZE,
+      fit: 'inside',
+      withoutEnlargement: true,
+    })
+    .webp({
+      quality: OUTPUT_IMAGE_QUALITY,
+      effort: 5,
+    })
+    .toBuffer();
   const client = new S3Client({
     region: 'us-east-1',
     endpoint: config.endpoint,
@@ -77,8 +81,9 @@ export const uploadProductImage = async (file: File, slug: string) => {
     new PutObjectCommand({
       Bucket: config.bucket,
       Key: key,
-      Body: Buffer.from(bytes),
-      ContentType: file.type,
+      Body: optimizedImage,
+      ContentType: 'image/webp',
+      CacheControl: 'public, max-age=31536000, immutable',
     })
   );
 
