@@ -1,13 +1,17 @@
 import Link from 'next/link';
-import { updateHomeSettings } from './actions';
+import { updateCustomGiftSettings, updateHomeSettings } from './actions';
+import CustomGiftSettingsForm from './CustomGiftSettingsForm';
 import HomeCoverImageField from './HomeCoverImageField';
-import { getHomeCoverImage } from '@/lib/siteSettings';
+import { getCustomGiftSettings, getHomeCoverImage } from '@/lib/siteSettings';
 
 const inputClass = 'w-full border border-shadow-black/20 px-3 py-2 text-sm outline-none focus:border-maroon';
 const labelClass = 'text-sm font-light text-shadow-black/70';
 
 const AdminHomePage = async () => {
-  const coverImage = await getHomeCoverImage();
+  const [coverImage, customGiftSettings] = await Promise.all([
+    getHomeCoverImage(),
+    getCustomGiftSettings(),
+  ]);
 
   return (
     <div>
@@ -19,6 +23,13 @@ const AdminHomePage = async () => {
       </div>
 
       <form action={updateHomeSettings} className="mt-8 grid gap-5 border border-shadow-black/10 bg-white p-5">
+        <div>
+          <h2 className="text-xl font-light">Cover</h2>
+          <p className="mt-1 text-sm font-light text-shadow-black/60">
+            Manage the main hero image on the home page.
+          </p>
+        </div>
+
         <HomeCoverImageField defaultImage={coverImage} inputClass={inputClass} labelClass={labelClass} />
 
         <div className="flex gap-3">
@@ -33,6 +44,13 @@ const AdminHomePage = async () => {
           </Link>
         </div>
       </form>
+
+      <CustomGiftSettingsForm
+        action={updateCustomGiftSettings}
+        settings={customGiftSettings}
+        inputClass={inputClass}
+        labelClass={labelClass}
+      />
     </div>
   );
 };
