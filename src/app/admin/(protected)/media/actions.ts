@@ -25,7 +25,13 @@ export const deleteMediaObject = async (formData: FormData) => {
     return;
   }
 
-  const [productUsageCount, siteSettingUsageCount, identityUsageCount, customGiftUsageCount] = await Promise.all([
+  const [
+    productUsageCount,
+    siteSettingUsageCount,
+    identityUsageCount,
+    customGiftUsageCount,
+    homeCatalogUsageCount,
+  ] = await Promise.all([
     prisma.product.count({
       where: {
         OR: [{ image: url }, { cardImage: url }, { thumbnailImage: url }],
@@ -40,9 +46,19 @@ export const deleteMediaObject = async (formData: FormData) => {
     prisma.customGiftItem.count({
       where: { image: url },
     }),
+    prisma.homeCatalogItem.count({
+      where: { image: url },
+    }),
   ]);
 
-  if (productUsageCount + siteSettingUsageCount + identityUsageCount + customGiftUsageCount > 0) {
+  if (
+    productUsageCount +
+      siteSettingUsageCount +
+      identityUsageCount +
+      customGiftUsageCount +
+      homeCatalogUsageCount >
+    0
+  ) {
     return;
   }
 

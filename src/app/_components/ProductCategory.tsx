@@ -1,28 +1,9 @@
 import ProductCategoryCard from './ProductCategoryCard';
+import { getHomeCatalogItems } from '@/lib/homeCatalog';
 
-const productCategories = [
-  {
-    image: 'https://images.giftoryth.com/giftoryth-public/images/Basket/09.webp',
-    title: 'Non-Custom Baskets',
-    url: '/baskets',
-    className: 'sm:max-w-[360px] md:max-w-[460px] aspect-square',
-  },
-  {
-    image: 'https://images.giftoryth.com/giftoryth-public/images/Basket/09.webp',
-    title: 'Special Custom Design Baskets',
-    url: '/baskets#sepcial-custom-design',
-    className: 'sm:max-w-[360px] md:max-w-[460px] aspect-square',
-  },
-  {
-    image: 'https://images.giftoryth.com/giftoryth-public/images/Basket/09.webp',
-    title: 'Custom-Gift',
-    url: '/custom-gift',
-    className:
-      'sm:col-span-2 lg:col-span-1 justify-self-center sm:max-h-[360px] md:max-h-[460px] aspect-square',
-  },
-];
+const ProductCategory = async () => {
+  const productCategories = await getHomeCatalogItems();
 
-const ProductCategory = () => {
   return (
     <>
       <div className="mx-auto my-10 h-[2px] w-24 bg-shadow-black" />
