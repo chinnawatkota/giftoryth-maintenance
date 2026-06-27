@@ -1,0 +1,6 @@
+#!/bin/sh
+# Disable concurrent to run `check-types` after ESLint in lint-staged
+cd "$(dirname "$0")/.." && npx lint-staged --concurrent false --allow-empty
+
+# Restage tracked changes (including deletions) after lint-staged without path-specific errors
+git add --update

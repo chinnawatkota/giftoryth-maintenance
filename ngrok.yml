@@ -1,0 +1,40 @@
+version: '2'
+authtoken: ${NGROK_AUTHTOKEN}
+tunnels:
+  basket-shop:
+    proto: http
+    addr: basket-shop:8080
+    schemes:
+      - https
+    inspect: true
+    bind_tls: true
+    host_header: rewrite
+    # Optional: Custom domain (requires paid ngrok plan)
+    # hostname: your-custom-domain.ngrok.io
+    # Optional: Basic auth
+    # basic_auth:
+    #   - "username:password"
+    # Optional: OAuth
+    # oauth: "google"
+    # Optional: IP restrictions
+    # ip_restriction:
+    #   - "0.0.0.0/0"
+    # Optional: Request headers
+    # request_header:
+    #   add:
+    #     - "X-Custom-Header: value"
+    # Optional: Response headers
+    # response_header:
+    #   add:
+    #     - "X-Custom-Response: value"
+    # Optional: Circuit breaker
+    # circuit_breaker:
+    #   error_threshold: 5
+    #   duration: 30s
+    #   volume_threshold: 10
+    # Optional: Compression
+    # compression: true
+    # Optional: Webhook verification
+    # webhook_verification:
+    #   provider: "github"
+    #   secret: "your-webhook-secret"

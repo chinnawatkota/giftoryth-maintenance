@@ -1,0 +1,19 @@
+services:
+  basket-shop-app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: basket-shop-app-dev
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    volumes:
+      - .:/app-src
+      - /app-src/node_modules
+    environment:
+      - NODE_ENV=development
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.basket-shop-dev.rule=Host(`dev.giftoryth.com`)'
+      - 'traefik.http.routers.basket-shop-dev.entrypoints=http'
+      - 'traefik.http.services.basket-shop-dev.loadbalancer.server.port=3000'
