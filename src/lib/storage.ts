@@ -1,4 +1,9 @@
-import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import {
+  DeleteObjectCommand,
+  ListObjectsV2Command,
+  PutObjectCommand,
+  S3Client,
+} from '@aws-sdk/client-s3';
 import sharp from 'sharp';
 
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
@@ -26,6 +31,27 @@ const getStorageConfig = () => {
   };
 };
 
+const getS3Client = () => {
+  const config = getStorageConfig();
+
+  if (!config) {
+    throw new Error('Storage is not configured.');
+  }
+
+  return {
+    config,
+    client: new S3Client({
+      region: 'us-east-1',
+      endpoint: config.endpoint,
+      forcePathStyle: true,
+      credentials: {
+        accessKeyId: config.accessKeyId,
+        secretAccessKey: config.secretAccessKey,
+      },
+    }),
+  };
+};
+
 const toSafeSegment = (value: string) =>
   value
     .toLowerCase()
@@ -46,11 +72,7 @@ export const uploadProductImage = async (file: File, slug: string) => {
     throw new Error('Image file must be 10MB or smaller.');
   }
 
-  const config = getStorageConfig();
-
-  if (!config) {
-    throw new Error('Storage is not configured.');
-  }
+  const { client, config } = getS3Client();
 
   const key = `products/${toSafeSegment(slug) || 'product'}-${Date.now()}.webp`;
   const bytes = await file.arrayBuffer();
@@ -67,16 +89,6 @@ export const uploadProductImage = async (file: File, slug: string) => {
       effort: 5,
     })
     .toBuffer();
-  const client = new S3Client({
-    region: 'us-east-1',
-    endpoint: config.endpoint,
-    forcePathStyle: true,
-    credentials: {
-      accessKeyId: config.accessKeyId,
-      secretAccessKey: config.secretAccessKey,
-    },
-  });
-
   await client.send(
     new PutObjectCommand({
       Bucket: config.bucket,
@@ -88,4 +100,74 @@ export const uploadProductImage = async (file: File, slug: string) => {
   );
 
   return `${config.publicBaseUrl.replace(/\/$/, '')}/${key}`;
+};
+
+export const getStorageObjectKey = (url: string) => {
+  const config = getStorageConfig();
+
+  if (!config) {
+    return null;
+  }
+
+  const publicBaseUrl = config.publicBaseUrl.replace(/\/$/, '');
+
+  if (!url.startsWith(`${publicBaseUrl}/`)) {
+    return null;
+  }
+
+  return decodeURIComponent(url.slice(publicBaseUrl.length + 1));
+};
+
+export const isManagedStorageUrl = (url: string) => Boolean(getStorageObjectKey(url));
+
+export const deleteStorageObjectByUrl = async (url: string) => {
+  const key = getStorageObjectKey(url);
+
+  if (!key) {
+    return false;
+  }
+
+  const { client, config } = getS3Client();
+
+  await client.send(
+    new DeleteObjectCommand({
+      Bucket: config.bucket,
+      Key: key,
+    })
+  );
+
+  return true;
+};
+
+export const listMediaObjects = async () => {
+  const { client, config } = getS3Client();
+  const objects = [];
+  let continuationToken: string | undefined;
+
+  do {
+    const response = await client.send(
+      new ListObjectsV2Command({
+        Bucket: config.bucket,
+        Prefix: 'products/',
+        ContinuationToken: continuationToken,
+      })
+    );
+
+    for (const object of response.Contents || []) {
+      if (!object.Key) {
+        continue;
+      }
+
+      objects.push({
+        key: object.Key,
+        url: `${config.publicBaseUrl.replace(/\/$/, '')}/${object.Key}`,
+        size: object.Size || 0,
+        lastModified: object.LastModified,
+      });
+    }
+
+    continuationToken = response.NextContinuationToken;
+  } while (continuationToken);
+
+  return objects.sort((a, b) => (b.lastModified?.getTime() || 0) - (a.lastModified?.getTime() || 0));
 };

@@ -19,6 +19,9 @@ const AdminLayout = async ({ children }: { children: React.ReactNode }) => {
             <Link href="/admin/categories" className="hover:text-maroon">
               Categories
             </Link>
+            <Link href="/admin/media" className="hover:text-maroon">
+              Media
+            </Link>
             <form action={logoutAdmin}>
               <button type="submit" className="hover:text-maroon">
                 Logout

@@ -1,6 +1,7 @@
 'use client';
 
 import Image from 'next/image';
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
 type ProductImageFieldProps = {
@@ -72,6 +73,9 @@ const ProductImageField = ({ defaultImage, inputClass, labelClass }: ProductImag
           <span className="text-xs font-light text-shadow-black/50">
             WEBP, JPG, or PNG. Max 10MB. Images are resized to 1200px and saved as WEBP on save.
           </span>
+          <Link href="/admin/media" target="_blank" className="text-xs font-light text-maroon underline-offset-4 hover:underline">
+            Open media library
+          </Link>
         </label>
       </div>
     </div>

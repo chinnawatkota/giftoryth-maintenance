@@ -1,7 +1,7 @@
 'use server';
 
 import { prisma } from '@/lib/prisma';
-import { uploadProductImage } from '@/lib/storage';
+import { deleteStorageObjectByUrl, isManagedStorageUrl, uploadProductImage } from '@/lib/storage';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
@@ -37,6 +37,23 @@ const revalidateProductPaths = () => {
   revalidatePath('/baskets');
 };
 
+const deleteManagedImageIfUnused = async (imageUrl: string, ignoreProductId?: string) => {
+  if (!isManagedStorageUrl(imageUrl)) {
+    return;
+  }
+
+  const usageCount = await prisma.product.count({
+    where: {
+      image: imageUrl,
+      ...(ignoreProductId ? { id: { not: ignoreProductId } } : {}),
+    },
+  });
+
+  if (usageCount === 0) {
+    await deleteStorageObjectByUrl(imageUrl);
+  }
+};
+
 export const createProduct = async (formData: FormData) => {
   const data = await productDataFromForm(formData);
 
@@ -57,10 +74,19 @@ export const updateProduct = async (formData: FormData) => {
     return;
   }
 
+  const existingProduct = await prisma.product.findUnique({
+    where: { id },
+    select: { image: true },
+  });
+
   await prisma.product.update({
     where: { id },
     data,
   });
+
+  if (existingProduct?.image && existingProduct.image !== data.image) {
+    await deleteManagedImageIfUnused(existingProduct.image, id);
+  }
 
   revalidateProductPaths();
   revalidatePath(`/basket/${data.slug}`);
@@ -74,10 +100,20 @@ export const deleteProduct = async (formData: FormData) => {
     return;
   }
 
+  const product = await prisma.product.findUnique({
+    where: { id },
+    select: { image: true },
+  });
+
+  if (!product) {
+    return;
+  }
+
   await prisma.product.delete({
     where: { id },
   });
 
+  await deleteManagedImageIfUnused(product.image, id);
   revalidateProductPaths();
 };
 
