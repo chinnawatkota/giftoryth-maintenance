@@ -16,6 +16,7 @@ const toCatalogProduct = (
 ): CatalogProduct => ({
   id: product.slug,
   image: product.image,
+  cardImage: product.cardImage ?? undefined,
   title: product.title,
   price: product.price ?? undefined,
   details: product.details,

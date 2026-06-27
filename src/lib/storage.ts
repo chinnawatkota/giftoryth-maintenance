@@ -8,8 +8,10 @@ import sharp from 'sharp';
 
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
 const OUTPUT_IMAGE_SIZE = 1200;
+const CARD_IMAGE_SIZE = 700;
 const THUMBNAIL_IMAGE_SIZE = 240;
 const OUTPUT_IMAGE_QUALITY = 80;
+const CARD_IMAGE_QUALITY = 78;
 const THUMBNAIL_IMAGE_QUALITY = 72;
 const ALLOWED_IMAGE_TYPES = ['image/webp', 'image/jpeg', 'image/png'];
 
@@ -65,16 +67,32 @@ const getThumbnailKey = (key: string) => {
   const parts = key.split('/');
   const fileName = parts.pop();
 
-  if (!fileName || parts.includes('thumbs')) {
+  if (!fileName || parts.includes('thumbs') || parts.includes('cards')) {
     return null;
   }
 
   return [...parts, 'thumbs', fileName].join('/');
 };
 
-const getMainKeyFromThumbnailKey = (key: string) => key.replace('/thumbs/', '/');
+const getCardKey = (key: string) => {
+  const parts = key.split('/');
+  const fileName = parts.pop();
 
-const uploadManagedImage = async (file: File, name: string, directory: 'products' | 'media') => {
+  if (!fileName || parts.includes('thumbs') || parts.includes('cards')) {
+    return null;
+  }
+
+  return [...parts, 'cards', fileName].join('/');
+};
+
+const getMainKeyFromDerivedKey = (key: string) => key.replace('/thumbs/', '/').replace('/cards/', '/');
+
+const uploadManagedImage = async (
+  file: File,
+  name: string,
+  directory: 'products' | 'media',
+  options: { createCardImage?: boolean } = {}
+) => {
   if (file.size === 0) {
     return null;
   }
@@ -92,6 +110,7 @@ const uploadManagedImage = async (file: File, name: string, directory: 'products
   const safeSlug = toSafeSegment(name) || directory.slice(0, -1);
   const timestamp = Date.now();
   const key = `${directory}/${safeSlug}-${timestamp}.webp`;
+  const cardKey = `${directory}/cards/${safeSlug}-${timestamp}.webp`;
   const thumbnailKey = `${directory}/thumbs/${safeSlug}-${timestamp}.webp`;
   const bytes = await file.arrayBuffer();
   const sourceImage = sharp(Buffer.from(bytes)).rotate();
@@ -108,6 +127,21 @@ const uploadManagedImage = async (file: File, name: string, directory: 'products
       effort: 5,
     })
     .toBuffer();
+  const cardImage = options.createCardImage
+    ? await sourceImage
+        .clone()
+        .resize({
+          width: CARD_IMAGE_SIZE,
+          height: CARD_IMAGE_SIZE,
+          fit: 'inside',
+          withoutEnlargement: true,
+        })
+        .webp({
+          quality: CARD_IMAGE_QUALITY,
+          effort: 5,
+        })
+        .toBuffer()
+    : null;
   const thumbnailImage = await sourceImage
     .clone()
     .resize({
@@ -132,6 +166,19 @@ const uploadManagedImage = async (file: File, name: string, directory: 'products
         CacheControl: 'public, max-age=31536000, immutable',
       })
     ),
+    ...(cardImage
+      ? [
+          client.send(
+            new PutObjectCommand({
+              Bucket: config.bucket,
+              Key: cardKey,
+              Body: cardImage,
+              ContentType: 'image/webp',
+              CacheControl: 'public, max-age=31536000, immutable',
+            })
+          ),
+        ]
+      : []),
     client.send(
       new PutObjectCommand({
         Bucket: config.bucket,
@@ -147,12 +194,13 @@ const uploadManagedImage = async (file: File, name: string, directory: 'products
 
   return {
     imageUrl: `${publicBaseUrl}/${key}`,
+    cardUrl: cardImage ? `${publicBaseUrl}/${cardKey}` : null,
     thumbnailUrl: `${publicBaseUrl}/${thumbnailKey}`,
   };
 };
 
 export const uploadProductImage = async (file: File, slug: string) =>
-  uploadManagedImage(file, slug, 'products');
+  uploadManagedImage(file, slug, 'products', { createCardImage: true });
 
 export const uploadMediaImage = async (file: File, name: string) =>
   uploadManagedImage(file, name, 'media');
@@ -203,10 +251,18 @@ export const deleteStorageObjectPairByUrl = async (url: string) => {
 
   const { client, config } = getS3Client();
   const keys = new Set([key]);
-  const pairedKey = key.includes('/thumbs/') ? getMainKeyFromThumbnailKey(key) : getThumbnailKey(key);
+  const mainKey = key.includes('/thumbs/') || key.includes('/cards/') ? getMainKeyFromDerivedKey(key) : key;
+  const thumbnailKey = getThumbnailKey(mainKey);
+  const cardKey = getCardKey(mainKey);
 
-  if (pairedKey) {
-    keys.add(pairedKey);
+  keys.add(mainKey);
+
+  if (thumbnailKey) {
+    keys.add(thumbnailKey);
+  }
+
+  if (cardKey) {
+    keys.add(cardKey);
   }
 
   await Promise.all(
@@ -261,7 +317,7 @@ export const listMediaObjects = async () => {
   const objectKeys = new Set(objects.map(object => object.key));
 
   return objects
-    .filter(object => !object.key.includes('/thumbs/'))
+    .filter(object => !object.key.includes('/thumbs/') && !object.key.includes('/cards/'))
     .map(object => {
       const thumbnailKey = getThumbnailKey(object.key);
 

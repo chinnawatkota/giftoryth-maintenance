@@ -71,7 +71,7 @@ const ProductImageField = ({ defaultImage, inputClass, labelClass }: ProductImag
             className="w-full border border-dashed border-shadow-black/20 px-3 py-3 text-sm file:mr-4 file:border-0 file:bg-maroon file:px-4 file:py-2 file:text-main-white"
           />
           <span className="text-xs font-light text-shadow-black/50">
-            WEBP, JPG, or PNG. Max 10MB. Images are resized to 1200px and saved as WEBP on save.
+            WEBP, JPG, or PNG. Max 10MB. Saved as WEBP with 1200px detail, 700px card, and 240px thumbnail images.
           </span>
           <Link href="/admin/media" target="_blank" className="text-xs font-light text-maroon underline-offset-4 hover:underline">
             Open media library

@@ -43,6 +43,11 @@ const MediaPage = async ({ searchParams }: MediaPageProps) => {
           },
         },
         {
+          cardImage: {
+            in: paginatedMediaUrls,
+          },
+        },
+        {
           thumbnailImage: {
             in: paginatedMediaUrls,
           },
@@ -53,6 +58,7 @@ const MediaPage = async ({ searchParams }: MediaPageProps) => {
       id: true,
       title: true,
       image: true,
+      cardImage: true,
       thumbnailImage: true,
     },
   });
@@ -62,7 +68,7 @@ const MediaPage = async ({ searchParams }: MediaPageProps) => {
   const to = Math.min(currentPage * PAGE_SIZE, totalMediaObjects);
 
   for (const product of usedProducts) {
-    for (const imageUrl of [product.image, product.thumbnailImage].filter(Boolean)) {
+    for (const imageUrl of [product.image, product.cardImage, product.thumbnailImage].filter(Boolean)) {
       const products = productsByImage.get(imageUrl!) || [];
       products.push(product);
       productsByImage.set(imageUrl!, products);

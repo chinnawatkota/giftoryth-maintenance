@@ -18,6 +18,7 @@ declare namespace Product {
   type ProductCardProps = {
     id: string;
     image: string;
+    cardImage?: string;
     title: string;
     price?: number;
     details?: React.ReactNode;

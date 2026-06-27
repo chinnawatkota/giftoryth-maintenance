@@ -6,6 +6,7 @@ import ProductDetailsList from '@/components/products/ProductDetailsList';
 
 const ProductCard = ({
   image,
+  cardImage,
   title,
   price,
   details,
@@ -40,7 +41,7 @@ const ProductCard = ({
         />
       )}
       <Image
-        src={image}
+        src={cardImage || image}
         alt={title || 'Product image'}
         fill
         sizes="(min-width: 1280px) 18vw, (min-width: 1024px) 24vw, (min-width: 640px) 48vw, 90vw"

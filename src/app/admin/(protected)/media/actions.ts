@@ -27,7 +27,7 @@ export const deleteMediaObject = async (formData: FormData) => {
 
   const usageCount = await prisma.product.count({
     where: {
-      OR: [{ image: url }, { thumbnailImage: url }],
+      OR: [{ image: url }, { cardImage: url }, { thumbnailImage: url }],
     },
   });
 
