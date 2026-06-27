@@ -8,6 +8,7 @@ import sharp from 'sharp';
 
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
 const OUTPUT_IMAGE_SIZE = 1200;
+const SITE_IMAGE_SIZE = 1920;
 const CARD_IMAGE_SIZE = 700;
 const THUMBNAIL_IMAGE_SIZE = 240;
 const OUTPUT_IMAGE_QUALITY = 80;
@@ -90,8 +91,8 @@ const getMainKeyFromDerivedKey = (key: string) => key.replace('/thumbs/', '/').r
 const uploadManagedImage = async (
   file: File,
   name: string,
-  directory: 'products' | 'media',
-  options: { createCardImage?: boolean } = {}
+  directory: 'products' | 'media' | 'site',
+  options: { createCardImage?: boolean; outputImageSize?: number } = {}
 ) => {
   if (file.size === 0) {
     return null;
@@ -116,9 +117,9 @@ const uploadManagedImage = async (
   const sourceImage = sharp(Buffer.from(bytes)).rotate();
   const optimizedImage = await sourceImage
     .clone()
-    .resize({
-      width: OUTPUT_IMAGE_SIZE,
-      height: OUTPUT_IMAGE_SIZE,
+        .resize({
+          width: options.outputImageSize || OUTPUT_IMAGE_SIZE,
+          height: options.outputImageSize || OUTPUT_IMAGE_SIZE,
       fit: 'inside',
       withoutEnlargement: true,
     })
@@ -205,6 +206,9 @@ export const uploadProductImage = async (file: File, slug: string) =>
 export const uploadMediaImage = async (file: File, name: string) =>
   uploadManagedImage(file, name, 'media');
 
+export const uploadSiteImage = async (file: File, name: string) =>
+  uploadManagedImage(file, name, 'site', { outputImageSize: SITE_IMAGE_SIZE });
+
 export const getStorageObjectKey = (url: string) => {
   const config = getStorageConfig();
 
@@ -282,7 +286,7 @@ export const deleteStorageObjectPairByUrl = async (url: string) => {
 export const listMediaObjects = async () => {
   const { client, config } = getS3Client();
   const objects = [];
-  const prefixes = ['products/', 'media/'];
+  const prefixes = ['products/', 'media/', 'site/'];
 
   for (const prefix of prefixes) {
     let continuationToken: string | undefined;

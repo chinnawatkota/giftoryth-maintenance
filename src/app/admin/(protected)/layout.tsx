@@ -13,6 +13,9 @@ const AdminLayout = async ({ children }: { children: React.ReactNode }) => {
             Giftoryth Admin
           </Link>
           <nav className="flex items-center gap-4 text-sm font-light">
+            <Link href="/admin/home" className="hover:text-maroon">
+              Home
+            </Link>
             <Link href="/admin/products" className="hover:text-maroon">
               Products
             </Link>

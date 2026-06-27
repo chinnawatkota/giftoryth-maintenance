@@ -3,11 +3,14 @@ import CustomGift from './CustomGift';
 import PageCover from './PageCover';
 import ProductCategory from './ProductCategory';
 import SpecialIdentityService from './SpecialIdentityService';
+import { getHomeCoverImage } from '@/lib/siteSettings';
 
-const HomeContent = () => {
+const HomeContent = async () => {
+  const homeCoverImage = await getHomeCoverImage();
+
   return (
     <div className="mb-8">
-      <PageCover />
+      <PageCover imageUrl={homeCoverImage} />
       <SpecialIdentityService />
       <BestSeller />
       <CustomGift />
