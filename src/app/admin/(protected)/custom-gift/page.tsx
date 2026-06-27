@@ -3,6 +3,7 @@ import CustomGiftItemImageField from './CustomGiftItemImageField';
 import { createCustomGiftItem, deleteCustomGiftItem, updateCustomGiftItem } from './actions';
 import { getCustomGiftPageItems, getNextCustomGiftSlot } from '@/lib/customGiftPage';
 
+const PAGE_SIZE = 8;
 const inputClass = 'w-full border border-shadow-black/20 px-3 py-2 text-sm outline-none focus:border-maroon';
 const labelClass = 'text-sm font-light text-shadow-black/70';
 const objectPositionOptions = [
@@ -14,13 +15,28 @@ const objectPositionOptions = [
   { label: 'Bottom', value: 'object-bottom' },
 ];
 
-const AdminCustomGiftPage = async () => {
+type AdminCustomGiftPageProps = {
+  searchParams: Promise<{
+    page?: string;
+  }>;
+};
+
+const AdminCustomGiftPage = async ({ searchParams }: AdminCustomGiftPageProps) => {
+  const params = await searchParams;
+  const requestedPage = Math.max(Number(params.page || 1), 1);
   const [items, nextSlot] = await Promise.all([
     getCustomGiftPageItems({ includeHidden: true }),
     getNextCustomGiftSlot(),
   ]);
   const featuredItem = items.find(item => item.slot === 1);
   const listItems = items.filter(item => item.slot !== 1);
+  const totalListItems = listItems.length;
+  const totalPages = Math.max(Math.ceil(totalListItems / PAGE_SIZE), 1);
+  const currentPage = Math.min(requestedPage, totalPages);
+  const paginatedListItems = listItems.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const from = totalListItems === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1;
+  const to = Math.min(currentPage * PAGE_SIZE, totalListItems);
+  const pageHref = (page: number) => `/admin/custom-gift?page=${page}`;
 
   return (
     <div>
@@ -96,8 +112,11 @@ const AdminCustomGiftPage = async () => {
 
       <div className="mt-8">
         <h2 className="text-xl font-light">List Items</h2>
+        <div className="mt-3 text-sm font-light text-shadow-black/60">
+          Showing {from}-{to} of {totalListItems} items
+        </div>
         <div className="mt-4 grid gap-5 lg:grid-cols-2">
-          {listItems.map(item => (
+          {paginatedListItems.map(item => (
             <div key={item.slot} className="grid gap-4 border border-shadow-black/10 bg-white p-5">
               <form action={updateCustomGiftItem} className="grid gap-4">
                 <input type="hidden" name="slot" value={item.slot} />
@@ -147,6 +166,44 @@ const AdminCustomGiftPage = async () => {
             </div>
           ))}
         </div>
+
+        {totalPages > 1 && (
+          <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+            <a
+              href={pageHref(Math.max(currentPage - 1, 1))}
+              className="border border-shadow-black/20 px-4 py-2 text-sm font-light aria-disabled:pointer-events-none aria-disabled:opacity-40"
+              aria-disabled={currentPage <= 1}
+            >
+              Previous
+            </a>
+            <div className="flex flex-wrap gap-2">
+              {Array.from({ length: totalPages }).map((_, index) => {
+                const page = index + 1;
+
+                return (
+                  <a
+                    key={page}
+                    href={pageHref(page)}
+                    className={
+                      page === currentPage
+                        ? 'bg-maroon px-3 py-2 text-sm text-main-white'
+                        : 'border border-shadow-black/20 px-3 py-2 text-sm font-light'
+                    }
+                  >
+                    {page}
+                  </a>
+                );
+              })}
+            </div>
+            <a
+              href={pageHref(Math.min(currentPage + 1, totalPages))}
+              className="border border-shadow-black/20 px-4 py-2 text-sm font-light aria-disabled:pointer-events-none aria-disabled:opacity-40"
+              aria-disabled={currentPage >= totalPages}
+            >
+              Next
+            </a>
+          </div>
+        )}
       </div>
     </div>
   );
