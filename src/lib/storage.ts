@@ -61,7 +61,20 @@ const toSafeSegment = (value: string) =>
     .replace(/^-+|-+$/g, '')
     .slice(0, 80);
 
-export const uploadProductImage = async (file: File, slug: string) => {
+const getThumbnailKey = (key: string) => {
+  const parts = key.split('/');
+  const fileName = parts.pop();
+
+  if (!fileName || parts.includes('thumbs')) {
+    return null;
+  }
+
+  return [...parts, 'thumbs', fileName].join('/');
+};
+
+const getMainKeyFromThumbnailKey = (key: string) => key.replace('/thumbs/', '/');
+
+const uploadManagedImage = async (file: File, name: string, directory: 'products' | 'media') => {
   if (file.size === 0) {
     return null;
   }
@@ -76,10 +89,10 @@ export const uploadProductImage = async (file: File, slug: string) => {
 
   const { client, config } = getS3Client();
 
-  const safeSlug = toSafeSegment(slug) || 'product';
+  const safeSlug = toSafeSegment(name) || directory.slice(0, -1);
   const timestamp = Date.now();
-  const key = `products/${safeSlug}-${timestamp}.webp`;
-  const thumbnailKey = `products/thumbs/${safeSlug}-${timestamp}.webp`;
+  const key = `${directory}/${safeSlug}-${timestamp}.webp`;
+  const thumbnailKey = `${directory}/thumbs/${safeSlug}-${timestamp}.webp`;
   const bytes = await file.arrayBuffer();
   const sourceImage = sharp(Buffer.from(bytes)).rotate();
   const optimizedImage = await sourceImage
@@ -138,6 +151,12 @@ export const uploadProductImage = async (file: File, slug: string) => {
   };
 };
 
+export const uploadProductImage = async (file: File, slug: string) =>
+  uploadManagedImage(file, slug, 'products');
+
+export const uploadMediaImage = async (file: File, name: string) =>
+  uploadManagedImage(file, name, 'media');
+
 export const getStorageObjectKey = (url: string) => {
   const config = getStorageConfig();
 
@@ -175,35 +194,82 @@ export const deleteStorageObjectByUrl = async (url: string) => {
   return true;
 };
 
+export const deleteStorageObjectPairByUrl = async (url: string) => {
+  const key = getStorageObjectKey(url);
+
+  if (!key) {
+    return false;
+  }
+
+  const { client, config } = getS3Client();
+  const keys = new Set([key]);
+  const pairedKey = key.includes('/thumbs/') ? getMainKeyFromThumbnailKey(key) : getThumbnailKey(key);
+
+  if (pairedKey) {
+    keys.add(pairedKey);
+  }
+
+  await Promise.all(
+    [...keys].map(item =>
+      client.send(
+        new DeleteObjectCommand({
+          Bucket: config.bucket,
+          Key: item,
+        })
+      )
+    )
+  );
+
+  return true;
+};
+
 export const listMediaObjects = async () => {
   const { client, config } = getS3Client();
   const objects = [];
-  let continuationToken: string | undefined;
+  const prefixes = ['products/', 'media/'];
 
-  do {
-    const response = await client.send(
-      new ListObjectsV2Command({
-        Bucket: config.bucket,
-        Prefix: 'products/',
-        ContinuationToken: continuationToken,
-      })
-    );
+  for (const prefix of prefixes) {
+    let continuationToken: string | undefined;
 
-    for (const object of response.Contents || []) {
-      if (!object.Key) {
-        continue;
+    do {
+      const response = await client.send(
+        new ListObjectsV2Command({
+          Bucket: config.bucket,
+          Prefix: prefix,
+          ContinuationToken: continuationToken,
+        })
+      );
+
+      for (const object of response.Contents || []) {
+        if (!object.Key) {
+          continue;
+        }
+
+        objects.push({
+          key: object.Key,
+          url: `${config.publicBaseUrl.replace(/\/$/, '')}/${object.Key}`,
+          size: object.Size || 0,
+          lastModified: object.LastModified,
+        });
       }
 
-      objects.push({
-        key: object.Key,
-        url: `${config.publicBaseUrl.replace(/\/$/, '')}/${object.Key}`,
-        size: object.Size || 0,
-        lastModified: object.LastModified,
-      });
-    }
+      continuationToken = response.NextContinuationToken;
+    } while (continuationToken);
+  }
 
-    continuationToken = response.NextContinuationToken;
-  } while (continuationToken);
+  const publicBaseUrl = config.publicBaseUrl.replace(/\/$/, '');
+  const objectKeys = new Set(objects.map(object => object.key));
 
-  return objects.sort((a, b) => (b.lastModified?.getTime() || 0) - (a.lastModified?.getTime() || 0));
+  return objects
+    .filter(object => !object.key.includes('/thumbs/'))
+    .map(object => {
+      const thumbnailKey = getThumbnailKey(object.key);
+
+      return {
+        ...object,
+        thumbnailUrl:
+          thumbnailKey && objectKeys.has(thumbnailKey) ? `${publicBaseUrl}/${thumbnailKey}` : object.url,
+      };
+    })
+    .sort((a, b) => (b.lastModified?.getTime() || 0) - (a.lastModified?.getTime() || 0));
 };

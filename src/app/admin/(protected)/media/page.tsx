@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import ConfirmSubmitButton from '../_components/ConfirmSubmitButton';
 import CopyUrlButton from './CopyUrlButton';
-import { deleteMediaObject } from './actions';
+import { deleteMediaObject, uploadMediaObject } from './actions';
 import { prisma } from '@/lib/prisma';
 import { listMediaObjects } from '@/lib/storage';
 
@@ -56,14 +56,46 @@ const MediaPage = async () => {
       <div>
         <h1 className="text-2xl font-light">Media Library</h1>
         <p className="mt-1 text-sm font-light text-shadow-black/60">
-          Product images uploaded to the managed storage bucket.
+          Managed images uploaded to the storage bucket.
         </p>
       </div>
+
+      <form action={uploadMediaObject} className="mt-8 border border-shadow-black/10 bg-white p-5">
+        <div className="grid gap-4 md:grid-cols-[1fr_1fr_auto] md:items-end">
+          <label className="grid gap-2 text-sm font-light text-shadow-black/60">
+            File Name Optional
+            <input
+              type="text"
+              name="name"
+              placeholder="banner-home or product-detail"
+              className="border border-shadow-black/20 px-3 py-3 text-base text-shadow-black"
+            />
+          </label>
+
+          <label className="grid gap-2 text-sm font-light text-shadow-black/60">
+            Upload Image
+            <input
+              type="file"
+              name="imageFile"
+              accept="image/webp,image/jpeg,image/png"
+              required
+              className="border border-dashed border-shadow-black/20 px-3 py-3 text-base text-shadow-black"
+            />
+          </label>
+
+          <button type="submit" className="bg-main-red px-5 py-3 text-white">
+            Upload
+          </button>
+        </div>
+        <p className="mt-3 text-xs font-light text-shadow-black/50">
+          WEBP, JPG, or PNG. Max 10MB. Images are resized to 1200px and saved with a thumbnail.
+        </p>
+      </form>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {mediaObjects.length === 0 && (
           <div className="border border-shadow-black/10 bg-white p-6 text-sm font-light text-shadow-black/60">
-            No uploaded product images yet.
+            No uploaded managed images yet.
           </div>
         )}
 
@@ -74,7 +106,13 @@ const MediaPage = async () => {
           return (
             <div key={item.key} className="border border-shadow-black/10 bg-white">
               <div className="relative aspect-square overflow-hidden bg-main-white">
-                <Image src={item.url} alt={item.key} fill sizes="(min-width: 1024px) 28vw, 90vw" className="object-cover" />
+                <Image
+                  src={item.thumbnailUrl}
+                  alt={item.key}
+                  fill
+                  sizes="(min-width: 1024px) 28vw, 90vw"
+                  className="object-cover"
+                />
               </div>
               <div className="grid gap-3 p-4">
                 <div>
