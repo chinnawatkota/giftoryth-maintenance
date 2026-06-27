@@ -37,6 +37,7 @@
     "deploy:ngrok:local": "npm run docker:compose:up && npm run ngrok:start:local"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1075.0",
     "@emailjs/browser": "^4.4.1",
     "@prisma/client": "^6.18.0",
     "clsx": "^2.1.1",

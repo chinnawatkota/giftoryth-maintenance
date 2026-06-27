@@ -1,6 +1,7 @@
 'use server';
 
 import { prisma } from '@/lib/prisma';
+import { uploadProductImage } from '@/lib/storage';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
@@ -11,18 +12,25 @@ const toInt = (value: FormDataEntryValue | null) => {
 };
 const toBool = (value: FormDataEntryValue | null) => value === 'on';
 
-const productDataFromForm = (formData: FormData) => ({
-  slug: toString(formData.get('slug')),
-  title: toString(formData.get('title')),
-  price: toInt(formData.get('price')),
-  image: toString(formData.get('image')),
-  details: toString(formData.get('details')),
-  categoryId: toString(formData.get('categoryId')),
-  sortOrder: Number(formData.get('sortOrder') || 0),
-  isPublished: toBool(formData.get('isPublished')),
-  isBestSeller: toBool(formData.get('isBestSeller')),
-  imageClassName: toString(formData.get('imageClassName')) || null,
-});
+const productDataFromForm = async (formData: FormData) => {
+  const slug = toString(formData.get('slug'));
+  const imageFile = formData.get('imageFile');
+  const uploadedImage =
+    imageFile instanceof File ? await uploadProductImage(imageFile, slug) : null;
+
+  return {
+    slug,
+    title: toString(formData.get('title')),
+    price: toInt(formData.get('price')),
+    image: uploadedImage || toString(formData.get('image')),
+    details: toString(formData.get('details')),
+    categoryId: toString(formData.get('categoryId')),
+    sortOrder: Number(formData.get('sortOrder') || 0),
+    isPublished: toBool(formData.get('isPublished')),
+    isBestSeller: toBool(formData.get('isBestSeller')),
+    imageClassName: toString(formData.get('imageClassName')) || null,
+  };
+};
 
 const revalidateProductPaths = () => {
   revalidatePath('/admin/products');
@@ -30,7 +38,7 @@ const revalidateProductPaths = () => {
 };
 
 export const createProduct = async (formData: FormData) => {
-  const data = productDataFromForm(formData);
+  const data = await productDataFromForm(formData);
 
   if (!data.slug || !data.title || !data.image || !data.categoryId) {
     return;
@@ -43,7 +51,7 @@ export const createProduct = async (formData: FormData) => {
 
 export const updateProduct = async (formData: FormData) => {
   const id = toString(formData.get('id'));
-  const data = productDataFromForm(formData);
+  const data = await productDataFromForm(formData);
 
   if (!id || !data.slug || !data.title || !data.image || !data.categoryId) {
     return;

@@ -50,7 +50,20 @@ const ProductForm = ({ action, categories, product, submitLabel }: ProductFormPr
 
     <label className="grid gap-2">
       <span className={labelClass}>Image URL</span>
-      <input name="image" defaultValue={product?.image} required className={inputClass} />
+      <input name="image" defaultValue={product?.image} className={inputClass} />
+    </label>
+
+    <label className="grid gap-2">
+      <span className={labelClass}>Upload Image Optional</span>
+      <input
+        name="imageFile"
+        type="file"
+        accept="image/webp,image/jpeg,image/png"
+        className="w-full border border-dashed border-shadow-black/20 px-3 py-3 text-sm file:mr-4 file:border-0 file:bg-maroon file:px-4 file:py-2 file:text-main-white"
+      />
+      <span className="text-xs font-light text-shadow-black/50">
+        WEBP, JPG, or PNG. Max 5MB. Uploaded image replaces the Image URL on save.
+      </span>
     </label>
 
     <label className="grid gap-2">

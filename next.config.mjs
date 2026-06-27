@@ -27,6 +27,12 @@ const nextConfig = {
         hostname: '**.giftoryth.com',
         pathname: '/**',
       },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '9000',
+        pathname: '/**',
+      },
     ],
   },
   async redirects() {
