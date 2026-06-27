@@ -9,6 +9,9 @@ type CustomGiftPageClientProps = {
 };
 
 const CustomGiftPageClient = ({ items }: CustomGiftPageClientProps) => {
+  const featuredItem = items.find(item => item.slot === 1);
+  const listItems = items.filter(item => item.slot !== 1);
+
   return (
     <div className="mb-4 min-h-[calc(100dvh-290px)]">
       <div className="flex h-fit w-full flex-col px-4 pb-[30px] pt-8 md:px-8 md:py-10 lg:py-12 xl:py-14">
@@ -25,11 +28,26 @@ const CustomGiftPageClient = ({ items }: CustomGiftPageClientProps) => {
           'flex flex-col gap-6 px-4 sm:grid sm:grid-cols-2 md:grid-cols-3 md:px-8 xl:grid-cols-4 2xl:grid-cols-5'
         )}
       >
-        {items.map(({ className, slot, ...gift }) => (
+        {featuredItem && (
           <ProductCard
-            key={`${slot}-${gift.image}`}
-            className={cn('max-w-full', className)}
-            {...gift}
+            key={`${featuredItem.slot}-${featuredItem.image}`}
+            id={featuredItem.id}
+            image={featuredItem.image}
+            title={featuredItem.title}
+            imageClassName={featuredItem.imageClassName}
+            disabledLink={featuredItem.disabledLink}
+            className={cn('max-w-full', featuredItem.className)}
+          />
+        )}
+        {listItems.map(item => (
+          <ProductCard
+            key={`${item.slot}-${item.image}`}
+            id={item.id}
+            image={item.image}
+            title={item.title}
+            imageClassName={item.imageClassName}
+            disabledLink={item.disabledLink}
+            className={cn('max-w-full bg-gray-100')}
           />
         ))}
       </div>
