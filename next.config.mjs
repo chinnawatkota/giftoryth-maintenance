@@ -8,6 +8,11 @@ const apexDomain = primaryDomain.replace(/^www\./, '');
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '12mb',
+    },
+  },
   turbopack: {
     root: path.join(__dirname),
   },
