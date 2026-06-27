@@ -8,7 +8,9 @@ import sharp from 'sharp';
 
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024;
 const OUTPUT_IMAGE_SIZE = 1200;
+const THUMBNAIL_IMAGE_SIZE = 240;
 const OUTPUT_IMAGE_QUALITY = 80;
+const THUMBNAIL_IMAGE_QUALITY = 72;
 const ALLOWED_IMAGE_TYPES = ['image/webp', 'image/jpeg', 'image/png'];
 
 const getStorageConfig = () => {
@@ -74,10 +76,14 @@ export const uploadProductImage = async (file: File, slug: string) => {
 
   const { client, config } = getS3Client();
 
-  const key = `products/${toSafeSegment(slug) || 'product'}-${Date.now()}.webp`;
+  const safeSlug = toSafeSegment(slug) || 'product';
+  const timestamp = Date.now();
+  const key = `products/${safeSlug}-${timestamp}.webp`;
+  const thumbnailKey = `products/thumbs/${safeSlug}-${timestamp}.webp`;
   const bytes = await file.arrayBuffer();
-  const optimizedImage = await sharp(Buffer.from(bytes))
-    .rotate()
+  const sourceImage = sharp(Buffer.from(bytes)).rotate();
+  const optimizedImage = await sourceImage
+    .clone()
     .resize({
       width: OUTPUT_IMAGE_SIZE,
       height: OUTPUT_IMAGE_SIZE,
@@ -89,17 +95,47 @@ export const uploadProductImage = async (file: File, slug: string) => {
       effort: 5,
     })
     .toBuffer();
-  await client.send(
-    new PutObjectCommand({
-      Bucket: config.bucket,
-      Key: key,
-      Body: optimizedImage,
-      ContentType: 'image/webp',
-      CacheControl: 'public, max-age=31536000, immutable',
+  const thumbnailImage = await sourceImage
+    .clone()
+    .resize({
+      width: THUMBNAIL_IMAGE_SIZE,
+      height: THUMBNAIL_IMAGE_SIZE,
+      fit: 'cover',
+      withoutEnlargement: true,
     })
-  );
+    .webp({
+      quality: THUMBNAIL_IMAGE_QUALITY,
+      effort: 5,
+    })
+    .toBuffer();
 
-  return `${config.publicBaseUrl.replace(/\/$/, '')}/${key}`;
+  await Promise.all([
+    client.send(
+      new PutObjectCommand({
+        Bucket: config.bucket,
+        Key: key,
+        Body: optimizedImage,
+        ContentType: 'image/webp',
+        CacheControl: 'public, max-age=31536000, immutable',
+      })
+    ),
+    client.send(
+      new PutObjectCommand({
+        Bucket: config.bucket,
+        Key: thumbnailKey,
+        Body: thumbnailImage,
+        ContentType: 'image/webp',
+        CacheControl: 'public, max-age=31536000, immutable',
+      })
+    ),
+  ]);
+
+  const publicBaseUrl = config.publicBaseUrl.replace(/\/$/, '');
+
+  return {
+    imageUrl: `${publicBaseUrl}/${key}`,
+    thumbnailUrl: `${publicBaseUrl}/${thumbnailKey}`,
+  };
 };
 
 export const getStorageObjectKey = (url: string) => {

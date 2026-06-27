@@ -140,7 +140,13 @@ const ProductsPage = async ({ searchParams }: ProductsPageProps) => {
               <tr key={product.id} className="border-b border-shadow-black/10 last:border-b-0">
                 <td className="px-4 py-3">
                   <div className="relative size-16 overflow-hidden bg-main-white">
-                    <Image src={product.image} alt={product.title} fill sizes="64px" className="object-cover" />
+                    <Image
+                      src={product.thumbnailImage || product.image}
+                      alt={product.title}
+                      fill
+                      sizes="64px"
+                      className="object-cover"
+                    />
                   </div>
                 </td>
                 <td className="px-4 py-3">

@@ -22,7 +22,8 @@ const productDataFromForm = async (formData: FormData) => {
     slug,
     title: toString(formData.get('title')),
     price: toInt(formData.get('price')),
-    image: uploadedImage || toString(formData.get('image')),
+    image: uploadedImage?.imageUrl || toString(formData.get('image')),
+    thumbnailImage: uploadedImage?.thumbnailUrl,
     details: toString(formData.get('details')),
     categoryId: toString(formData.get('categoryId')),
     sortOrder: Number(formData.get('sortOrder') || 0),
@@ -37,14 +38,18 @@ const revalidateProductPaths = () => {
   revalidatePath('/baskets');
 };
 
-const deleteManagedImageIfUnused = async (imageUrl: string, ignoreProductId?: string) => {
+const deleteManagedImageIfUnused = async (imageUrl: string | null | undefined, ignoreProductId?: string) => {
+  if (!imageUrl) {
+    return;
+  }
+
   if (!isManagedStorageUrl(imageUrl)) {
     return;
   }
 
   const usageCount = await prisma.product.count({
     where: {
-      image: imageUrl,
+      OR: [{ image: imageUrl }, { thumbnailImage: imageUrl }],
       ...(ignoreProductId ? { id: { not: ignoreProductId } } : {}),
     },
   });
@@ -76,16 +81,25 @@ export const updateProduct = async (formData: FormData) => {
 
   const existingProduct = await prisma.product.findUnique({
     where: { id },
-    select: { image: true },
+    select: { image: true, thumbnailImage: true },
   });
 
   await prisma.product.update({
     where: { id },
-    data,
+    data: {
+      ...data,
+      thumbnailImage:
+        data.thumbnailImage === undefined
+          ? existingProduct?.image === data.image
+            ? existingProduct.thumbnailImage
+            : null
+          : data.thumbnailImage,
+    },
   });
 
   if (existingProduct?.image && existingProduct.image !== data.image) {
     await deleteManagedImageIfUnused(existingProduct.image, id);
+    await deleteManagedImageIfUnused(existingProduct.thumbnailImage, id);
   }
 
   revalidateProductPaths();
@@ -102,7 +116,7 @@ export const deleteProduct = async (formData: FormData) => {
 
   const product = await prisma.product.findUnique({
     where: { id },
-    select: { image: true },
+    select: { image: true, thumbnailImage: true },
   });
 
   if (!product) {
@@ -114,6 +128,7 @@ export const deleteProduct = async (formData: FormData) => {
   });
 
   await deleteManagedImageIfUnused(product.image, id);
+  await deleteManagedImageIfUnused(product.thumbnailImage, id);
   revalidateProductPaths();
 };
 

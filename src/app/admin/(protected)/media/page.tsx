@@ -21,22 +21,34 @@ const MediaPage = async () => {
   const mediaObjects = await listMediaObjects();
   const usedProducts = await prisma.product.findMany({
     where: {
-      image: {
-        in: mediaObjects.map(item => item.url),
-      },
+      OR: [
+        {
+          image: {
+            in: mediaObjects.map(item => item.url),
+          },
+        },
+        {
+          thumbnailImage: {
+            in: mediaObjects.map(item => item.url),
+          },
+        },
+      ],
     },
     select: {
       id: true,
       title: true,
       image: true,
+      thumbnailImage: true,
     },
   });
   const productsByImage = new Map<string, typeof usedProducts>();
 
   for (const product of usedProducts) {
-    const products = productsByImage.get(product.image) || [];
-    products.push(product);
-    productsByImage.set(product.image, products);
+    for (const imageUrl of [product.image, product.thumbnailImage].filter(Boolean)) {
+      const products = productsByImage.get(imageUrl!) || [];
+      products.push(product);
+      productsByImage.set(imageUrl!, products);
+    }
   }
 
   return (
