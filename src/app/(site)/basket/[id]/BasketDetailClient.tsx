@@ -5,12 +5,13 @@ import { OutlineButton } from '@/components/buttons';
 import { cn } from '@/utils/className';
 import { formatPrice } from '@/utils/string';
 import { LineLink } from '@/constants/contact';
+import ProductDetailsList from '@/components/products/ProductDetailsList';
 
 type BasketDetailClientProps = {
   product: {
     id: string;
     title: string;
-    price: number;
+    price?: number;
     image: string;
     details: React.ReactNode;
     gridStyle?: string;
@@ -65,7 +66,7 @@ const BasketDetailClient = ({ product }: BasketDetailClientProps) => {
                   What's Inside
                 </h3>
                 <div className="space-y-1 text-[11px] font-light leading-relaxed text-shadow-black/80 sm:text-sm md:text-base">
-                  {product.details}
+                  <ProductDetailsList details={product.details} />
                 </div>
               </div>
 

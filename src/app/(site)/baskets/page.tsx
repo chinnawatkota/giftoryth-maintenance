@@ -5,8 +5,11 @@ import { productItemListStructuredData } from '@/components/seo/StructuredData';
 import { getSiteUrl } from '@/utils/siteUrl';
 import { generateThaiKeywords } from '@/utils/thaiKeywords';
 import BasketsPageClient from './BasketsPageClient';
+import { getPublishedProductsByCategory } from '@/lib/catalog';
 
 const BASE_URL = getSiteUrl();
+
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'กระเช้าของขวัญพรีเมียม | giftoryth',
@@ -26,16 +29,23 @@ export const metadata: Metadata = {
   },
 };
 
-const BasketsPage = () => (
-  <>
-    <Script
-      id="structured-data-baskets"
-      type="application/ld+json"
-      strategy="afterInteractive"
-      dangerouslySetInnerHTML={{ __html: JSON.stringify([productItemListStructuredData]) }}
-    />
-    <BasketsPageClient />
-  </>
-);
+const BasketsPage = async () => {
+  const [nonCustomBaskets, customBaskets] = await Promise.all([
+    getPublishedProductsByCategory('non-custom'),
+    getPublishedProductsByCategory('special-custom-design'),
+  ]);
+
+  return (
+    <>
+      <Script
+        id="structured-data-baskets"
+        type="application/ld+json"
+        strategy="afterInteractive"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify([productItemListStructuredData]) }}
+      />
+      <BasketsPageClient nonCustomBaskets={nonCustomBaskets} customBaskets={customBaskets} />
+    </>
+  );
+};
 
 export default BasketsPage;

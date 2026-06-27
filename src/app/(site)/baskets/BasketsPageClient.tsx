@@ -3,10 +3,15 @@
 import { useRef } from 'react';
 import { OutlineButton } from '@/components/buttons';
 import { ProductCard } from '@/components/cards';
-import { customBasketsList, nonCustomBasketsList } from '@/constants/basket';
+import type { CatalogProduct } from '@/lib/catalog';
 import { cn } from '@/utils';
 
-const BasketsPageClient = () => {
+type BasketsPageClientProps = {
+  nonCustomBaskets: CatalogProduct[];
+  customBaskets: CatalogProduct[];
+};
+
+const BasketsPageClient = ({ nonCustomBaskets, customBaskets }: BasketsPageClientProps) => {
   const nonCustomBasketsRef = useRef<HTMLDivElement>(null);
   const specialCustomDesignBasketsRef = useRef<HTMLDivElement>(null);
 
@@ -54,7 +59,7 @@ const BasketsPageClient = () => {
           'grid grid-cols-1 gap-6 px-4 sm:grid-cols-2 md:px-8 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5'
         )}
       >
-        {nonCustomBasketsList.map(basket => (
+        {nonCustomBaskets.map(basket => (
           <ProductCard key={basket.image + basket.title} {...basket} />
         ))}
       </div>
@@ -74,12 +79,12 @@ const BasketsPageClient = () => {
           'mb-4 grid grid-cols-1 gap-6 px-4 sm:grid-cols-2 md:px-8 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5'
         )}
       >
-        {customBasketsList.map(basket => (
+        {customBaskets.map(basket => (
           <ProductCard
             key={basket.image + basket.title}
             {...basket}
             className="relative place-items-baseline bg-maroon"
-            imageClassName={basket?.imageClassName || 'abs'}
+            imageClassName={basket.imageClassName || 'abs'}
             defaultBackground
           />
         ))}

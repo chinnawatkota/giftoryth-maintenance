@@ -2,26 +2,21 @@
 import type { Metadata } from 'next';
 import Script from 'next/script';
 import BasketDetailClient from './BasketDetailClient';
-import { customBasketsList, nonCustomBasketsList } from '@/constants/basket';
 import {
   generateProductStructuredData,
   generateBreadcrumbStructuredData,
 } from '@/components/seo/StructuredData';
 import { getSiteUrl } from '@/utils/siteUrl';
 import { notFound } from 'next/navigation';
+import { getPublishedProductBySlug } from '@/lib/catalog';
 
 type PageParams = Promise<{ id: string }>;
 
-const findProduct = (id: string) => {
-  return (
-    nonCustomBasketsList.find(basket => basket.id === id) ||
-    customBasketsList.find(basket => basket.id === id)
-  );
-};
+export const dynamic = 'force-dynamic';
 
 export async function generateMetadata({ params }: { params: PageParams }): Promise<Metadata> {
   const { id } = await params;
-  const product = findProduct(id);
+  const product = await getPublishedProductBySlug(id);
   if (!product) {
     return {
       title: 'Basket not found | giftoryth',
@@ -30,7 +25,7 @@ export async function generateMetadata({ params }: { params: PageParams }): Prom
 
   const baseUrl = getSiteUrl();
   const title = `${product.title} - giftoryth`;
-  const description = `${product.title} - Premium gift basket available for ฿${product.price}. Order via Line for free consultation.`;
+  const description = `${product.title} - Premium gift basket available for ฿${product.price ?? 0}. Order via Line for free consultation.`;
   const url = `${baseUrl}/basket/${id}`;
 
   return {
@@ -51,7 +46,7 @@ export async function generateMetadata({ params }: { params: PageParams }): Prom
 
 const BasketPage = async ({ params }: { params: PageParams }) => {
   const { id } = await params;
-  const product = findProduct(id);
+  const product = await getPublishedProductBySlug(id);
   const baseUrl = getSiteUrl();
 
   if (!product) {
@@ -59,7 +54,7 @@ const BasketPage = async ({ params }: { params: PageParams }) => {
   }
 
   const structuredData = [
-    generateProductStructuredData(product!),
+    generateProductStructuredData({ ...product!, price: product!.price ?? 0 }),
     generateBreadcrumbStructuredData([
       { name: 'Home', url: `${baseUrl}/` },
       { name: 'Baskets', url: `${baseUrl}/baskets` },

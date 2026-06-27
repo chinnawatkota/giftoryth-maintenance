@@ -2,6 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { formatPrice } from '@/utils/string';
 import { cn } from '@/utils/className';
+import ProductDetailsList from '@/components/products/ProductDetailsList';
 
 const ProductCard = ({
   image,
@@ -57,7 +58,9 @@ const ProductCard = ({
               {title}
             </h2>
             {details && (
-              <div className="text-xs font-extralight text-shadow-black md:text-sm">{details}</div>
+              <div className="text-xs font-extralight text-shadow-black md:text-sm">
+                <ProductDetailsList details={details} />
+              </div>
             )}
           </div>
         </div>
