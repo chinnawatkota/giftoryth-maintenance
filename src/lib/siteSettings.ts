@@ -21,6 +21,18 @@ export const DEFAULT_CUSTOM_GIFT_SETTINGS = {
   rightImage2: 'https://images.giftoryth.com/giftoryth-public/images/shop-all-basket/bow-bag.webp',
   rightAlt2: 'Bow bag',
 };
+export const ABOUT_SETTING_KEYS = {
+  firstImage: 'about.firstImage',
+  firstAlt: 'about.firstAlt',
+  secondImage: 'about.secondImage',
+  secondAlt: 'about.secondAlt',
+} as const;
+export const DEFAULT_ABOUT_SETTINGS = {
+  firstImage: 'https://images.giftoryth.com/giftoryth-public/images/IMG_6078.webp',
+  firstAlt: 'About Giftoryth',
+  secondImage: 'https://images.giftoryth.com/giftoryth-public/images/cover.webp',
+  secondAlt: 'Giftoryth gift basket',
+};
 
 export const getSiteSetting = async (key: string) => {
   const setting = await prisma.siteSetting.findUnique({
@@ -56,5 +68,16 @@ export const getCustomGiftSettings = async () => {
     rightAlt1: settings.get(CUSTOM_GIFT_SETTING_KEYS.rightAlt1) || DEFAULT_CUSTOM_GIFT_SETTINGS.rightAlt1,
     rightImage2: settings.get(CUSTOM_GIFT_SETTING_KEYS.rightImage2) || DEFAULT_CUSTOM_GIFT_SETTINGS.rightImage2,
     rightAlt2: settings.get(CUSTOM_GIFT_SETTING_KEYS.rightAlt2) || DEFAULT_CUSTOM_GIFT_SETTINGS.rightAlt2,
+  };
+};
+
+export const getAboutSettings = async () => {
+  const settings = await getSiteSettings(Object.values(ABOUT_SETTING_KEYS));
+
+  return {
+    firstImage: settings.get(ABOUT_SETTING_KEYS.firstImage) || DEFAULT_ABOUT_SETTINGS.firstImage,
+    firstAlt: settings.get(ABOUT_SETTING_KEYS.firstAlt) || DEFAULT_ABOUT_SETTINGS.firstAlt,
+    secondImage: settings.get(ABOUT_SETTING_KEYS.secondImage) || DEFAULT_ABOUT_SETTINGS.secondImage,
+    secondAlt: settings.get(ABOUT_SETTING_KEYS.secondAlt) || DEFAULT_ABOUT_SETTINGS.secondAlt,
   };
 };

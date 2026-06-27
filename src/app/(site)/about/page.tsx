@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import Image from 'next/image';
 import { getSiteUrl } from '@/utils/siteUrl';
 import { generateThaiKeywords } from '@/utils/thaiKeywords';
+import { getAboutSettings } from '@/lib/siteSettings';
 
 const BASE_URL = getSiteUrl();
 
@@ -24,14 +25,18 @@ export const metadata: Metadata = {
   },
 };
 
-const AboutPage = () => {
+export const dynamic = 'force-dynamic';
+
+const AboutPage = async () => {
+  const aboutSettings = await getAboutSettings();
+
   return (
     <>
       <div className="relative mx-auto mb-4 hidden min-h-[calc(100dvh-290px)] w-full max-w-[1200px] grid-cols-2 lg:grid">
         <div className="h-[500px] bg-beige">
           <Image
-            src="https://images.giftoryth.com/giftoryth-public/images/IMG_6078.webp"
-            alt="About Hero"
+            src={aboutSettings.firstImage}
+            alt={aboutSettings.firstAlt}
             width={1000}
             height={1000}
             className="h-full w-full object-cover"
@@ -56,8 +61,8 @@ const AboutPage = () => {
         </div>
         <div className="h-[500px] bg-beige">
           <Image
-            src="https://images.giftoryth.com/giftoryth-public/images/cover.webp"
-            alt="About Hero"
+            src={aboutSettings.secondImage}
+            alt={aboutSettings.secondAlt}
             width={1000}
             height={1000}
             className="h-full w-full object-cover"
@@ -68,8 +73,8 @@ const AboutPage = () => {
       <div className="mx-auto mb-4 flex min-h-[calc(100dvh-290px)] w-full max-w-[1200px] flex-col lg:hidden">
         <div className="relative h-[500px] bg-beige">
           <Image
-            src="https://images.giftoryth.com/giftoryth-public/images/IMG_6078.webp"
-            alt="About Hero"
+            src={aboutSettings.firstImage}
+            alt={aboutSettings.firstAlt}
             width={1000}
             height={1000}
             className="h-full w-full object-cover"
@@ -87,8 +92,8 @@ const AboutPage = () => {
         </div>
         <div className="relative h-[500px] bg-beige">
           <Image
-            src="https://images.giftoryth.com/giftoryth-public/images/cover.webp"
-            alt="About Hero"
+            src={aboutSettings.secondImage}
+            alt={aboutSettings.secondAlt}
             width={1000}
             height={1000}
             className="h-full w-full object-cover"
