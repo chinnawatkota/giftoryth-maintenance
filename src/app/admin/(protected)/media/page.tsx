@@ -34,45 +34,81 @@ const MediaPage = async ({ searchParams }: MediaPageProps) => {
   const currentPage = Math.min(requestedPage, totalPages);
   const paginatedMediaObjects = mediaObjects.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
   const paginatedMediaUrls = paginatedMediaObjects.flatMap(item => [item.url, item.thumbnailUrl]);
-  const usedProducts = await prisma.product.findMany({
-    where: {
-      OR: [
-        {
-          image: {
-            in: paginatedMediaUrls,
+  const [usedProducts, usedSiteSettings, usedIdentityItems] = await Promise.all([
+    prisma.product.findMany({
+      where: {
+        OR: [
+          {
+            image: {
+              in: paginatedMediaUrls,
+            },
           },
-        },
-        {
-          cardImage: {
-            in: paginatedMediaUrls,
+          {
+            cardImage: {
+              in: paginatedMediaUrls,
+            },
           },
-        },
-        {
-          thumbnailImage: {
-            in: paginatedMediaUrls,
+          {
+            thumbnailImage: {
+              in: paginatedMediaUrls,
+            },
           },
+        ],
+      },
+      select: {
+        title: true,
+        image: true,
+        cardImage: true,
+        thumbnailImage: true,
+      },
+    }),
+    prisma.siteSetting.findMany({
+      where: {
+        value: {
+          in: paginatedMediaUrls,
         },
-      ],
-    },
-    select: {
-      id: true,
-      title: true,
-      image: true,
-      cardImage: true,
-      thumbnailImage: true,
-    },
-  });
-  const productsByImage = new Map<string, typeof usedProducts>();
+      },
+      select: {
+        key: true,
+        value: true,
+      },
+    }),
+    prisma.homeIdentityItem.findMany({
+      where: {
+        image: {
+          in: paginatedMediaUrls,
+        },
+      },
+      select: {
+        slot: true,
+        title: true,
+        image: true,
+      },
+    }),
+  ]);
+  const usageByImage = new Map<string, string[]>();
   const pageHref = (page: number) => `/admin/media?page=${page}`;
   const from = totalMediaObjects === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1;
   const to = Math.min(currentPage * PAGE_SIZE, totalMediaObjects);
 
   for (const product of usedProducts) {
     for (const imageUrl of [product.image, product.cardImage, product.thumbnailImage].filter(Boolean)) {
-      const products = productsByImage.get(imageUrl!) || [];
-      products.push(product);
-      productsByImage.set(imageUrl!, products);
+      const usages = usageByImage.get(imageUrl!) || [];
+      usages.push(`Product: ${product.title}`);
+      usageByImage.set(imageUrl!, usages);
     }
+  }
+
+  for (const setting of usedSiteSettings) {
+    const usages = usageByImage.get(setting.value) || [];
+    usages.push(`Setting: ${setting.key}`);
+    usageByImage.set(setting.value, usages);
+  }
+
+  for (const item of usedIdentityItems) {
+    const usages = usageByImage.get(item.image) || [];
+    usages.push(`Identity slot ${item.slot}: ${item.title}`);
+    usageByImage.set(item.image, usages);
   }
 
   return (
@@ -128,9 +164,9 @@ const MediaPage = async ({ searchParams }: MediaPageProps) => {
         )}
 
         {paginatedMediaObjects.map(item => {
-          const products = [...(productsByImage.get(item.url) || []), ...(productsByImage.get(item.thumbnailUrl) || [])]
-            .filter((product, index, list) => list.findIndex(entry => entry.id === product.id) === index);
-          const isUsed = products.length > 0;
+          const usages = [...(usageByImage.get(item.url) || []), ...(usageByImage.get(item.thumbnailUrl) || [])]
+            .filter((usage, index, list) => list.indexOf(usage) === index);
+          const isUsed = usages.length > 0;
 
           return (
             <div key={item.key} className="border border-shadow-black/10 bg-white">
@@ -153,9 +189,7 @@ const MediaPage = async ({ searchParams }: MediaPageProps) => {
                 </div>
 
                 <div className="text-xs font-light text-shadow-black/60">
-                  {isUsed
-                    ? `Used by ${products.map(product => product.title).join(', ')}`
-                    : 'Not used by any product'}
+                  {isUsed ? `Used by ${usages.join(', ')}` : 'Not used by any managed content'}
                 </div>
 
                 <div className="flex flex-wrap gap-2">

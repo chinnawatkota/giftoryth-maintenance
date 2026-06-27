@@ -25,6 +25,9 @@ const AdminHomePage = async () => {
           <button type="submit" className="bg-maroon px-4 py-2 text-sm font-light text-main-white">
             Save Home Page
           </button>
+          <Link href="/admin/home/identity" className="border border-shadow-black/20 px-4 py-2 text-sm font-light">
+            Identity Service
+          </Link>
           <Link href="/" target="_blank" className="border border-shadow-black/20 px-4 py-2 text-sm font-light">
             View Home
           </Link>

@@ -1,9 +1,11 @@
-import { identityServiceItems } from '@/constants/identity-service';
+import { getHomeIdentityItems } from '@/lib/homeIdentity';
 import { cn } from '@/utils';
 import Image from 'next/image';
 import Topic from './Topic';
 
-const SpecialIdentityService = () => {
+const SpecialIdentityService = async () => {
+  const identityServiceItems = await getHomeIdentityItems();
+
   return (
     <div className="px-4 sm:px-6 md:px-8">
       <div className="mx-auto max-w-7xl">

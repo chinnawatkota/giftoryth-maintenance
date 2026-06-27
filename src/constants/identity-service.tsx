@@ -1,6 +1,7 @@
 export const identityServiceItems = [
   {
     id: 'identity-01',
+    slot: 1,
     image: 'https://images.giftoryth.com/giftoryth-public/images/IDENTITY_SERVICE/01.webp',
     title: 'Corporate Identity',
     gridArea: 'item1',
@@ -10,6 +11,7 @@ export const identityServiceItems = [
   },
   {
     id: 'identity-02',
+    slot: 2,
     image: 'https://images.giftoryth.com/giftoryth-public/images/IDENTITY_SERVICE/02.webp',
     title: 'Brand Design',
     gridArea: 'item2',
@@ -19,6 +21,7 @@ export const identityServiceItems = [
   },
   {
     id: 'identity-03',
+    slot: 3,
     image: 'https://images.giftoryth.com/giftoryth-public/images/IDENTITY_SERVICE/03.webp',
     title: 'Premium Packaging',
     gridArea: 'item3',
@@ -28,6 +31,7 @@ export const identityServiceItems = [
   },
   {
     id: 'identity-04',
+    slot: 4,
     image: 'https://images.giftoryth.com/giftoryth-public/images/IDENTITY_SERVICE/04.webp',
     title: 'Custom Solutions',
     gridArea: 'item4',
@@ -37,6 +41,7 @@ export const identityServiceItems = [
   },
   {
     id: 'identity-05',
+    slot: 5,
     image: 'https://images.giftoryth.com/giftoryth-public/images/IDENTITY_SERVICE/05.webp',
     title: 'Luxury Experience',
     gridArea: 'item5',
@@ -46,6 +51,7 @@ export const identityServiceItems = [
   },
   {
     id: 'identity-08',
+    slot: 6,
     image: 'https://images.giftoryth.com/giftoryth-public/images/IDENTITY_SERVICE/08.webp',
     title: 'Excellence Standard',
     gridArea: 'item8',
@@ -55,6 +61,7 @@ export const identityServiceItems = [
   },
   {
     id: 'identity-06',
+    slot: 7,
     image: 'https://images.giftoryth.com/giftoryth-public/images/IDENTITY_SERVICE/06.webp',
     title: 'Professional Service',
     gridArea: 'item6',
@@ -64,6 +71,7 @@ export const identityServiceItems = [
   },
   {
     id: 'identity-07',
+    slot: 8,
     image: 'https://images.giftoryth.com/giftoryth-public/images/IDENTITY_SERVICE/07.webp',
     title: 'Quality Assurance',
     gridArea: 'item7',
