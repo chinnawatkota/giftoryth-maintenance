@@ -57,3 +57,20 @@ export const getPublishedProductBySlug = async (slug: string) => {
 
   return product ? toCatalogProduct(product) : null;
 };
+
+export const getBestSellerProducts = async () => {
+  const products = await prisma.product.findMany({
+    where: {
+      isPublished: true,
+      isBestSeller: true,
+    },
+    orderBy: [{ sortOrder: 'asc' }, { title: 'asc' }],
+    include: {
+      category: {
+        select: { slug: true },
+      },
+    },
+  });
+
+  return products.map(toCatalogProduct);
+};

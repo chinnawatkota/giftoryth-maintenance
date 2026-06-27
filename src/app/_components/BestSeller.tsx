@@ -1,8 +1,14 @@
-import { bestSellerProducts } from '@/constants/bestSellers';
 import Topic from './Topic';
 import BestSellerCard from './BestSellerCard';
+import { getBestSellerProducts } from '@/lib/catalog';
 
-const BestSeller = () => {
+const BestSeller = async () => {
+  const bestSellerProducts = await getBestSellerProducts();
+
+  if (bestSellerProducts.length === 0) {
+    return null;
+  }
+
   return (
     <>
       <Topic title="Best Sellers" />
@@ -13,8 +19,9 @@ const BestSeller = () => {
               image={product.image}
               title={product.title}
               price={product.price}
-              isBestSeller={product.isBestSeller}
+              isBestSeller
               isEvenIem={index % 2 === 0}
+              href={`/basket/${product.id}`}
             />
           </div>
         ))}

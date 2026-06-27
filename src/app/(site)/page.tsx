@@ -12,6 +12,8 @@ import { generateThaiKeywords } from '@/utils/thaiKeywords';
 const BASE_URL = getSiteUrl();
 const structuredData = [businessStructuredData, websiteStructuredData, faqStructuredData];
 
+export const dynamic = 'force-dynamic';
+
 // eslint-disable-next-line react-refresh/only-export-components
 export const metadata: Metadata = {
   title: 'giftoryth - กระเช้าของขวัญพรีเมียม',
