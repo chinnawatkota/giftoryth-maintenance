@@ -5,6 +5,7 @@ import ProductImageField from './ProductImageField';
 type ProductFormProps = {
   action: (formData: FormData) => Promise<void>;
   categories: Category[];
+  errorMessage?: string;
   product?: Product;
   submitLabel: string;
 };
@@ -12,9 +13,15 @@ type ProductFormProps = {
 const inputClass = 'w-full border border-shadow-black/20 px-3 py-2 text-sm outline-none focus:border-maroon';
 const labelClass = 'text-sm font-light text-shadow-black/70';
 
-const ProductForm = ({ action, categories, product, submitLabel }: ProductFormProps) => (
+const ProductForm = ({ action, categories, errorMessage, product, submitLabel }: ProductFormProps) => (
   <form action={action} className="grid gap-5 border border-shadow-black/10 bg-white p-5">
     {product && <input type="hidden" name="id" value={product.id} />}
+
+    {errorMessage && (
+      <div className="border border-maroon/30 bg-maroon/5 px-4 py-3 text-sm font-light text-maroon">
+        {errorMessage}
+      </div>
+    )}
 
     <div className="grid gap-4 md:grid-cols-2">
       <label className="grid gap-2">

@@ -60,7 +60,25 @@ const deleteManagedImageIfUnused = async (imageUrl: string | null | undefined, i
   }
 };
 
+const productSlugExists = async (slug: string, ignoreProductId?: string) => {
+  const product = await prisma.product.findFirst({
+    where: {
+      slug,
+      ...(ignoreProductId ? { id: { not: ignoreProductId } } : {}),
+    },
+    select: { id: true },
+  });
+
+  return Boolean(product);
+};
+
 export const createProduct = async (formData: FormData) => {
+  const slug = toString(formData.get('slug'));
+
+  if (slug && await productSlugExists(slug)) {
+    redirect('/admin/products/new?error=slug-exists');
+  }
+
   const data = await productDataFromForm(formData);
 
   if (!data.slug || !data.title || !data.image || !data.categoryId) {
@@ -74,6 +92,12 @@ export const createProduct = async (formData: FormData) => {
 
 export const updateProduct = async (formData: FormData) => {
   const id = toString(formData.get('id'));
+  const slug = toString(formData.get('slug'));
+
+  if (id && slug && await productSlugExists(slug, id)) {
+    redirect(`/admin/products/${id}/edit?error=slug-exists`);
+  }
+
   const data = await productDataFromForm(formData);
 
   if (!id || !data.slug || !data.title || !data.image || !data.categoryId) {
