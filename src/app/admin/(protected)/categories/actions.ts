@@ -2,10 +2,23 @@
 
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
 
 const toSlug = (value: FormDataEntryValue | null) => String(value || '').trim();
 const toName = (value: FormDataEntryValue | null) => String(value || '').trim();
 const toSortOrder = (value: FormDataEntryValue | null) => Number(value || 0);
+
+const categorySlugExists = async (slug: string, ignoreCategoryId?: string) => {
+  const category = await prisma.category.findFirst({
+    where: {
+      slug,
+      ...(ignoreCategoryId ? { id: { not: ignoreCategoryId } } : {}),
+    },
+    select: { id: true },
+  });
+
+  return Boolean(category);
+};
 
 export const createCategory = async (formData: FormData) => {
   const slug = toSlug(formData.get('slug'));
@@ -13,6 +26,10 @@ export const createCategory = async (formData: FormData) => {
 
   if (!slug || !name) {
     return;
+  }
+
+  if (await categorySlugExists(slug)) {
+    redirect('/admin/categories?error=slug-exists');
   }
 
   await prisma.category.create({
@@ -33,6 +50,10 @@ export const updateCategory = async (formData: FormData) => {
 
   if (!id || !slug || !name) {
     return;
+  }
+
+  if (await categorySlugExists(slug, id)) {
+    redirect('/admin/categories?error=slug-exists');
   }
 
   await prisma.category.update({

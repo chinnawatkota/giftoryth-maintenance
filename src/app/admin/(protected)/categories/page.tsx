@@ -4,7 +4,16 @@ import ConfirmSubmitButton from '../_components/ConfirmSubmitButton';
 
 const inputClass = 'w-full border border-shadow-black/20 px-3 py-2 text-sm outline-none focus:border-maroon';
 
-const CategoriesPage = async () => {
+type CategoriesPageProps = {
+  searchParams: Promise<{ error?: string }>;
+};
+
+const errorMessages: Record<string, string> = {
+  'slug-exists': 'This slug is already used by another category. Please choose a different slug.',
+};
+
+const CategoriesPage = async ({ searchParams }: CategoriesPageProps) => {
+  const { error } = await searchParams;
   const categories = await prisma.category.findMany({
     orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
     include: {
@@ -22,6 +31,12 @@ const CategoriesPage = async () => {
           <p className="mt-1 text-sm font-light text-shadow-black/60">Manage product sections.</p>
         </div>
       </div>
+
+      {error && errorMessages[error] && (
+        <div className="mt-6 border border-maroon/30 bg-maroon/5 px-4 py-3 text-sm font-light text-maroon">
+          {errorMessages[error]}
+        </div>
+      )}
 
       <form action={createCategory} className="mt-8 grid gap-3 border border-shadow-black/10 bg-white p-4 md:grid-cols-[1fr_1fr_120px_auto]">
         <input name="slug" placeholder="slug" required className={inputClass} />
