@@ -13,6 +13,7 @@ type HomeCatalogImageFieldProps = {
 const HomeCatalogImageField = ({ image, title, inputClass, labelClass }: HomeCatalogImageFieldProps) => {
   const [imageUrl, setImageUrl] = useState(image);
   const [previewUrl, setPreviewUrl] = useState(image);
+  const [hasUploadFile, setHasUploadFile] = useState(false);
 
   useEffect(() => {
     return () => {
@@ -43,7 +44,7 @@ const HomeCatalogImageField = ({ image, title, inputClass, labelClass }: HomeCat
           <input
             name="image"
             value={imageUrl}
-            required
+            required={!hasUploadFile}
             onChange={event => {
               setImageUrl(event.target.value);
               setPreviewUrl(event.target.value);
@@ -62,10 +63,12 @@ const HomeCatalogImageField = ({ image, title, inputClass, labelClass }: HomeCat
               const file = event.target.files?.[0];
 
               if (!file) {
+                setHasUploadFile(false);
                 setPreviewUrl(imageUrl);
                 return;
               }
 
+              setHasUploadFile(true);
               setPreviewUrl(URL.createObjectURL(file));
             }}
             className="w-full border border-dashed border-shadow-black/20 px-3 py-3 text-sm file:mr-4 file:border-0 file:bg-maroon file:px-4 file:py-2 file:text-main-white"
@@ -80,4 +83,3 @@ const HomeCatalogImageField = ({ image, title, inputClass, labelClass }: HomeCat
 };
 
 export default HomeCatalogImageField;
-

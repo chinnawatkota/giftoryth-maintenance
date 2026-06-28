@@ -13,6 +13,7 @@ type CustomGiftItemImageFieldProps = {
 const CustomGiftItemImageField = ({ image, title, inputClass, labelClass }: CustomGiftItemImageFieldProps) => {
   const [imageUrl, setImageUrl] = useState(image);
   const [previewUrl, setPreviewUrl] = useState(image);
+  const [hasUploadFile, setHasUploadFile] = useState(false);
 
   useEffect(() => {
     return () => {
@@ -39,7 +40,7 @@ const CustomGiftItemImageField = ({ image, title, inputClass, labelClass }: Cust
         <input
           name="image"
           value={imageUrl}
-          required
+          required={!hasUploadFile}
           onChange={event => {
             setImageUrl(event.target.value);
             setPreviewUrl(event.target.value);
@@ -58,10 +59,12 @@ const CustomGiftItemImageField = ({ image, title, inputClass, labelClass }: Cust
             const file = event.target.files?.[0];
 
             if (!file) {
+              setHasUploadFile(false);
               setPreviewUrl(imageUrl);
               return;
             }
 
+            setHasUploadFile(true);
             setPreviewUrl(URL.createObjectURL(file));
           }}
           className="w-full border border-dashed border-shadow-black/20 px-3 py-3 text-sm file:mr-4 file:border-0 file:bg-maroon file:px-4 file:py-2 file:text-main-white"
@@ -75,4 +78,3 @@ const CustomGiftItemImageField = ({ image, title, inputClass, labelClass }: Cust
 };
 
 export default CustomGiftItemImageField;
-
