@@ -11,10 +11,10 @@ const HomeContent = async () => {
   return (
     <div className="mb-8">
       <PageCover imageUrl={homeCoverImage} />
-      <SpecialIdentityService />
       <BestSeller />
       <CustomGift />
       <ProductCategory />
+      <SpecialIdentityService />
     </div>
   );
 };
