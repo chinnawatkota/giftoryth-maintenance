@@ -22,6 +22,7 @@
     "prisma:deploy": "prisma migrate deploy",
     "prisma:seed": "prisma db seed",
     "legacy:crawl": "node scripts/legacy-crawl.mjs",
+    "products:migrate-images": "node scripts/migrate-product-images.mjs",
     "db:local": "docker compose -f docker-compose.local.yml up -d",
     "docker:dev-vps:config": "docker compose --env-file .env.dev-vps -f docker-compose.dev-vps.yml config",
     "docker:dev-vps:up": "docker compose --env-file .env.dev-vps -f docker-compose.dev-vps.yml up -d --build",
