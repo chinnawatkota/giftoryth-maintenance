@@ -28,5 +28,6 @@ dist-ssr
 
 .env
 .env.dev-vps
+legacy-export*/
 
 *.md
