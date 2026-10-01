@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
@@ -14,6 +13,11 @@ const HomeCoverImageField = ({ defaultImage, inputClass, labelClass }: HomeCover
   const [imageUrl, setImageUrl] = useState(defaultImage);
   const [previewUrl, setPreviewUrl] = useState(defaultImage);
   const [hasUploadFile, setHasUploadFile] = useState(false);
+  const previewStyle = previewUrl
+    ? {
+        backgroundImage: `url("${previewUrl.replace(/"/g, '\\"')}")`,
+      }
+    : undefined;
 
   useEffect(() => {
     return () => {
@@ -29,7 +33,12 @@ const HomeCoverImageField = ({ defaultImage, inputClass, labelClass }: HomeCover
         <span className={labelClass}>Cover Preview</span>
         <div className="relative aspect-[16/9] overflow-hidden border border-shadow-black/10 bg-main-white">
           {previewUrl ? (
-            <Image src={previewUrl} alt="Home cover preview" fill sizes="320px" className="object-cover" />
+            <div
+              aria-label="Home cover preview"
+              role="img"
+              className="size-full bg-cover bg-center"
+              style={previewStyle}
+            />
           ) : (
             <div className="flex size-full items-center justify-center px-4 text-center text-sm font-light text-shadow-black/40">
               No image

@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import type { getCustomGiftSettings } from '@/lib/siteSettings';
 
@@ -39,6 +38,11 @@ const ImageInput = ({
   const [imageUrl, setImageUrl] = useState(defaultImage);
   const [previewUrl, setPreviewUrl] = useState(defaultImage);
   const [hasUploadFile, setHasUploadFile] = useState(false);
+  const previewStyle = previewUrl
+    ? {
+        backgroundImage: `url("${previewUrl.replace(/"/g, '\\"')}")`,
+      }
+    : undefined;
 
   useEffect(() => {
     return () => {
@@ -53,7 +57,12 @@ const ImageInput = ({
       <span className={labelClass}>{label}</span>
       <div className={`relative overflow-hidden border border-shadow-black/10 bg-main-white ${previewClassName}`}>
         {previewUrl ? (
-          <Image src={previewUrl} alt={defaultAlt || label} fill sizes="360px" className="object-cover" />
+          <div
+            aria-label={defaultAlt || label}
+            role="img"
+            className="size-full bg-cover bg-center"
+            style={previewStyle}
+          />
         ) : (
           <div className="flex size-full items-center justify-center text-sm font-light text-shadow-black/40">
             No image
